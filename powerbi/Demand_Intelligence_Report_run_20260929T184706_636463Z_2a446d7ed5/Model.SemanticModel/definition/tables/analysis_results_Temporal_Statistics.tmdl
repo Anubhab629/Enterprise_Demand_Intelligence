@@ -1,0 +1,68 @@
+table analysis_results_Temporal_Statistics
+	lineageTag: 7b85eb07-c787-471c-8e78-06323dd65c7b
+
+	column table
+		dataType: string
+		lineageTag: 4fda05bb-c983-4cf1-8ac9-140baf5762ee
+		summarizeBy: none
+		sourceColumn: table
+
+	column column
+		dataType: string
+		lineageTag: eabef2b1-d7d8-4984-8911-39dc5c31cbf0
+		summarizeBy: none
+		sourceColumn: column
+
+	column valid_count
+		dataType: int64
+		lineageTag: 8a04d2a4-900b-483f-bdda-c0c4fcd63d1f
+		summarizeBy: sum
+		sourceColumn: valid_count
+
+	column missing_count
+		dataType: int64
+		lineageTag: 97d1c93c-b11f-4911-a8b1-c2ae4239d9df
+		summarizeBy: sum
+		sourceColumn: missing_count
+
+	column minimum
+		dataType: string
+		lineageTag: 84f1e7be-fd1a-4874-b761-f9746d1e4b4d
+		summarizeBy: none
+		sourceColumn: minimum
+
+	column maximum
+		dataType: string
+		lineageTag: e1890a77-7ab0-472a-b8d5-58bc1426ff62
+		summarizeBy: none
+		sourceColumn: maximum
+
+	column distinct_periods
+		dataType: int64
+		lineageTag: 9492b96b-7c66-4ce6-84be-507702027de2
+		summarizeBy: sum
+		sourceColumn: distinct_periods
+
+	partition analysis_results_Temporal_Statistics_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/analysis_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Temporal_Statistics",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"table", type text},
+				            {"column", type text},
+				            {"valid_count", Int64.Type},
+				            {"missing_count", Int64.Type},
+				            {"minimum", type text},
+				            {"maximum", type text},
+				            {"distinct_periods", Int64.Type}
+				        }
+				    )
+				in
+				    TypedColumns
+

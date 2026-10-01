@@ -1,0 +1,180 @@
+table analytical_dataset_sales
+	lineageTag: 1e7256c8-6b4d-4067-8f10-47793976255e
+
+	column company_id
+		dataType: string
+		lineageTag: dc762ace-35ca-4946-a7d3-0ac80ff8f4d4
+		summarizeBy: none
+		sourceColumn: company_id
+
+	column date
+		dataType: string
+		lineageTag: d2a4bc43-2068-462a-8631-b27d4916edb1
+		summarizeBy: none
+		sourceColumn: date
+
+	column product
+		dataType: string
+		lineageTag: 76f9e08c-9e1d-45ed-808e-c39fbe19fff1
+		summarizeBy: none
+		sourceColumn: product
+
+	column units_sold
+		dataType: int64
+		lineageTag: ad1fb94b-905b-4aa9-a695-0828bc4546bc
+		summarizeBy: sum
+		sourceColumn: units_sold
+
+	column unit_price_inr
+		dataType: int64
+		lineageTag: 42c68c11-bf28-4569-9336-0b2843aa8439
+		summarizeBy: sum
+		sourceColumn: unit_price_inr
+
+	column sales_value_inr
+		dataType: int64
+		lineageTag: 747b975c-88ab-4008-8894-7f6722de02d6
+		summarizeBy: sum
+		sourceColumn: sales_value_inr
+
+	column returns_units
+		dataType: int64
+		lineageTag: c86b8db0-2027-487b-a678-98328a8c7762
+		summarizeBy: sum
+		sourceColumn: returns_units
+
+	column service_level_pct
+		dataType: double
+		lineageTag: 09442914-d521-480b-86d2-7e6aff55cbc2
+		summarizeBy: sum
+		sourceColumn: service_level_pct
+
+	column date_year
+		dataType: int64
+		lineageTag: 8c69aefb-f72e-4aba-846b-fea2dac04355
+		summarizeBy: sum
+		sourceColumn: date__year
+
+	column date_month
+		dataType: int64
+		lineageTag: 12a69f9a-ece0-4430-8b9d-38f78ac28c4c
+		summarizeBy: sum
+		sourceColumn: date__month
+
+	column date_quarter
+		dataType: int64
+		lineageTag: e6fa148e-5cbe-46d4-9aa4-20f6f5720bd8
+		summarizeBy: sum
+		sourceColumn: date__quarter
+
+	column date_week
+		dataType: int64
+		lineageTag: a1f6a9e7-41c9-4863-8348-2f8b609a8b93
+		summarizeBy: sum
+		sourceColumn: date__week
+
+	column date_day_of_week
+		dataType: int64
+		lineageTag: 8268f6ff-d26a-4020-83e8-dacb5222766f
+		summarizeBy: sum
+		sourceColumn: date__day_of_week
+
+	column date_day_of_month
+		dataType: int64
+		lineageTag: ccf90e6a-fa7c-4ee2-90af-4edb0d14c241
+		summarizeBy: sum
+		sourceColumn: date__day_of_month
+
+	column date_day_of_year
+		dataType: int64
+		lineageTag: 249ac805-ca26-4648-8519-9222d0c76102
+		summarizeBy: sum
+		sourceColumn: date__day_of_year
+
+	column date_is_month_start
+		dataType: boolean
+		lineageTag: 05699ce3-fd80-4c13-867c-84ce6e5cafee
+		summarizeBy: none
+		sourceColumn: date__is_month_start
+
+	column date_is_month_end
+		dataType: boolean
+		lineageTag: d612c784-c752-412e-b5ff-980d28fc9d94
+		summarizeBy: none
+		sourceColumn: date__is_month_end
+
+	column date_is_quarter_start
+		dataType: boolean
+		lineageTag: bcc7f6cd-4cdb-43f2-a16a-e97f10e9a421
+		summarizeBy: none
+		sourceColumn: date__is_quarter_start
+
+	column date_is_quarter_end
+		dataType: boolean
+		lineageTag: 9f27b25b-1945-4a02-b9b8-ad5944beef66
+		summarizeBy: none
+		sourceColumn: date__is_quarter_end
+
+	column numeric_non_null_count
+		dataType: int64
+		lineageTag: 1ad22d17-0dcd-4fde-8995-f4ed6c5c8e66
+		summarizeBy: sum
+		sourceColumn: __numeric_non_null_count
+
+	column missing_value_count
+		dataType: int64
+		lineageTag: 61355742-e4b8-4ea1-8a85-c76e1a6e5194
+		summarizeBy: sum
+		sourceColumn: __missing_value_count
+
+	column non_missing_value_count
+		dataType: int64
+		lineageTag: 4a16f4d3-ad18-4bfb-be1a-93a919b30e36
+		summarizeBy: sum
+		sourceColumn: __non_missing_value_count
+
+	column missing_value_ratio
+		dataType: int64
+		lineageTag: e49e85df-b9cd-4cc2-a7fc-555166846119
+		summarizeBy: sum
+		sourceColumn: __missing_value_ratio
+
+	partition analytical_dataset_sales_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/analytical_dataset.xlsx"), null, true),
+				    SheetData = Source{[Item="sales",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"company_id", type text},
+				            {"date", type text},
+				            {"product", type text},
+				            {"units_sold", Int64.Type},
+				            {"unit_price_inr", Int64.Type},
+				            {"sales_value_inr", Int64.Type},
+				            {"returns_units", Int64.Type},
+				            {"service_level_pct", type number},
+				            {"date__year", Int64.Type},
+				            {"date__month", Int64.Type},
+				            {"date__quarter", Int64.Type},
+				            {"date__week", Int64.Type},
+				            {"date__day_of_week", Int64.Type},
+				            {"date__day_of_month", Int64.Type},
+				            {"date__day_of_year", Int64.Type},
+				            {"date__is_month_start", type logical},
+				            {"date__is_month_end", type logical},
+				            {"date__is_quarter_start", type logical},
+				            {"date__is_quarter_end", type logical},
+				            {"__numeric_non_null_count", Int64.Type},
+				            {"__missing_value_count", Int64.Type},
+				            {"__non_missing_value_count", Int64.Type},
+				            {"__missing_value_ratio", Int64.Type}
+				        }
+				    )
+				in
+				    TypedColumns
+

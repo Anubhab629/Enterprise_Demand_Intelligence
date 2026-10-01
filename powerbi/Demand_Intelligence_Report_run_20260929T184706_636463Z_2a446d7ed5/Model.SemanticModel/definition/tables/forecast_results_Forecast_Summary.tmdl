@@ -1,0 +1,33 @@
+table forecast_results_Forecast_Summary
+	lineageTag: 3ffbfc17-54ae-49aa-9607-5fa800eb89da
+
+	column Metric
+		dataType: string
+		lineageTag: 343e03a7-0d1c-4384-a304-329e300e70c6
+		summarizeBy: none
+		sourceColumn: Metric
+
+	column Value
+		dataType: double
+		lineageTag: 568f2089-19f1-4e41-94e9-f4d51705d364
+		summarizeBy: sum
+		sourceColumn: Value
+
+	partition forecast_results_Forecast_Summary_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/forecast_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Forecast_Summary",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"Metric", type text},
+				            {"Value", type number}
+				        }
+				    )
+				in
+				    TypedColumns
+

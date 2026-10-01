@@ -1,0 +1,225 @@
+table forecast_results_Forecasts
+	lineageTag: e6daf63d-a27a-4380-8e82-aad3de124cc1
+
+	measure 'Forecast Series Count' = COUNTROWS('forecast_results_Forecasts')
+		formatString: #,##0
+		lineageTag: 8cc22c83-de67-4c6b-868b-aceef0843fb7
+
+	measure 'Average Forecast Horizon' = AVERAGE('forecast_results_Forecasts'[ForecastHorizonDays])
+		formatString: 0
+		lineageTag: 8dfb889e-adf8-4017-aa77-c58a018d4726
+
+	measure 'Average Recent vs Baseline Change' = AVERAGE('forecast_results_Forecasts'[RecentVsBaselineChangePct])
+		formatString: 0.00
+		lineageTag: b00f87b1-1f51-489f-a1e8-1aa293054f8e
+
+	measure 'Executive Forecast Trend Count' = COUNTROWS('forecast_results_Forecasts')
+		formatString: #,##0
+		lineageTag: 17526ec4-4f53-4824-bd87-28f800b62eb9
+
+	measure 'Forecast Trend Count' = COUNTROWS('forecast_results_Forecasts')
+		formatString: #,##0
+		lineageTag: 87e3430e-6a04-42a2-9789-8223e3befdfc
+
+	measure 'Forecast Confidence Count' = COUNTROWS('forecast_results_Forecasts')
+		formatString: #,##0
+		lineageTag: f8e05129-4a03-4839-b4f9-0e78253be9a7
+
+	column table
+		dataType: string
+		lineageTag: 0d2896da-c282-456b-b9ad-6d0060e54d91
+		summarizeBy: none
+		sourceColumn: table
+
+	column time_column
+		dataType: string
+		lineageTag: 4ae3bd39-ac36-4688-aefc-9ae1771c1a01
+		summarizeBy: none
+		sourceColumn: time_column
+
+	column value_column
+		dataType: string
+		lineageTag: b4b64796-7ab4-4856-a469-01262503a949
+		summarizeBy: none
+		sourceColumn: value_column
+
+	column ForecastStart
+		dataType: dateTime
+		lineageTag: 537011ea-21ef-4025-b49b-8d9bd6e475b9
+		summarizeBy: none
+		sourceColumn: ForecastStart
+
+	column ForecastEnd
+		dataType: dateTime
+		lineageTag: cb1d7540-90b4-49eb-81e9-6bb887cfdae2
+		summarizeBy: none
+		sourceColumn: ForecastEnd
+
+	column HistoryPoints
+		dataType: int64
+		lineageTag: 2f58a14c-8468-44b9-bf20-6aba88abc1e2
+		summarizeBy: sum
+		sourceColumn: HistoryPoints
+
+	column RecentAverage
+		dataType: double
+		lineageTag: c88c64ab-b66a-40be-b626-7f6c6f7a1f01
+		summarizeBy: sum
+		sourceColumn: RecentAverage
+
+	column BaselineAverage
+		dataType: double
+		lineageTag: c138f536-d791-4d9e-9783-f5818bdbaae1
+		summarizeBy: sum
+		sourceColumn: BaselineAverage
+
+	column ForecastAverage
+		dataType: double
+		lineageTag: 2e652ac6-d64a-49b3-a6d6-755a7aa3990f
+		summarizeBy: sum
+		sourceColumn: ForecastAverage
+
+	column ForecastTotal
+		dataType: double
+		lineageTag: 1c6b2e06-29d0-4a9d-bc23-c21593df1032
+		summarizeBy: sum
+		sourceColumn: ForecastTotal
+
+	column LowerForecastTotal
+		dataType: double
+		lineageTag: 822ad032-660d-427d-acc4-b991a310347a
+		summarizeBy: sum
+		sourceColumn: LowerForecastTotal
+
+	column UpperForecastTotal
+		dataType: double
+		lineageTag: 3ebed4b6-4876-47c6-ac55-793a26445c74
+		summarizeBy: sum
+		sourceColumn: UpperForecastTotal
+
+	column Volatility
+		dataType: double
+		lineageTag: 0c13e869-032c-4f61-920c-4b53cc417fe2
+		summarizeBy: sum
+		sourceColumn: Volatility
+
+	column CoefficientOfVariation
+		dataType: double
+		lineageTag: 9c269212-57e5-488e-840e-a48a5dbae48e
+		summarizeBy: sum
+		sourceColumn: CoefficientOfVariation
+
+	column RecentVsBaselineChangePct
+		dataType: double
+		lineageTag: e7ecbe57-3d09-4c31-b085-818d18e0f45a
+		summarizeBy: sum
+		sourceColumn: RecentVsBaselineChangePct
+
+	column ForecastConfidence
+		dataType: string
+		lineageTag: 0723d423-b90c-4ab7-a08a-48a58e029f13
+		summarizeBy: none
+		sourceColumn: ForecastConfidence
+
+	column FrequencyEvidence
+		dataType: string
+		lineageTag: ef444b09-7cfd-403a-9904-a3521b90b0e0
+		summarizeBy: none
+		sourceColumn: FrequencyEvidence
+
+	column ForecastPoints
+		dataType: int64
+		lineageTag: cc533015-381e-453f-973b-f627fdea4926
+		summarizeBy: sum
+		sourceColumn: ForecastPoints
+
+	column ForecastHorizonDays
+		dataType: int64
+		lineageTag: 4d56760d-4798-4dd3-9cfd-3b5c8ddcc310
+		summarizeBy: sum
+		sourceColumn: ForecastHorizonDays
+
+	column candidate_score
+		dataType: double
+		lineageTag: e59395b3-15d9-4d93-bd7d-1adee87e2368
+		summarizeBy: sum
+		sourceColumn: candidate_score
+
+	column company_id
+		dataType: string
+		lineageTag: 596d6955-3a20-44bc-998b-3e84111b5d86
+		summarizeBy: none
+		sourceColumn: company_id
+
+	column product
+		dataType: string
+		lineageTag: 355c9180-4377-4bb5-a035-2cc9c6e4318f
+		summarizeBy: none
+		sourceColumn: product
+
+	column competitor_activity
+		dataType: string
+		lineageTag: 964d7fe3-b426-47d7-9206-2f33cc759137
+		summarizeBy: none
+		sourceColumn: competitor_activity
+
+	column customer_id
+		dataType: string
+		lineageTag: 89aba656-e8b0-48da-8192-ca17a3b83148
+		summarizeBy: none
+		sourceColumn: customer_id
+
+	column order_status
+		dataType: string
+		lineageTag: 56368f19-e4af-46e8-a564-3f4232ae862c
+		summarizeBy: none
+		sourceColumn: order_status
+
+	column DemandTrend
+		dataType: string
+		lineageTag: 12a0cc83-f5db-4b86-ac2e-c19d1a5a5085
+		summarizeBy: none
+		sourceColumn: DemandTrend
+
+	partition forecast_results_Forecasts_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/forecast_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Forecasts",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"table", type text},
+				            {"time_column", type text},
+				            {"value_column", type text},
+				            {"ForecastStart", type datetime},
+				            {"ForecastEnd", type datetime},
+				            {"HistoryPoints", Int64.Type},
+				            {"RecentAverage", type number},
+				            {"BaselineAverage", type number},
+				            {"ForecastAverage", type number},
+				            {"ForecastTotal", type number},
+				            {"LowerForecastTotal", type number},
+				            {"UpperForecastTotal", type number},
+				            {"Volatility", type number},
+				            {"CoefficientOfVariation", type number},
+				            {"RecentVsBaselineChangePct", type number},
+				            {"ForecastConfidence", type text},
+				            {"FrequencyEvidence", type text},
+				            {"ForecastPoints", Int64.Type},
+				            {"ForecastHorizonDays", Int64.Type},
+				            {"candidate_score", type number},
+				            {"company_id", type text},
+				            {"product", type text},
+				            {"competitor_activity", type text},
+				            {"customer_id", type text},
+				            {"order_status", type text},
+				            {"DemandTrend", type text}
+				        }
+				    )
+				in
+				    TypedColumns
+

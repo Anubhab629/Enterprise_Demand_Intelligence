@@ -1,0 +1,58 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Local recovery / historical snapshots
+.env_backups/
+
+# Runtime datasets and generated data
+data/raw/
+data/processed/
+data/output/
+
+# Power BI generated staging and documentation runs
+powerbi/data/
+powerbi/documentation/
+
+# Power BI local state/cache
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Generated Power BI integration manifest
+powerbi/**/integration_manifest.json
+
+# Logs / temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+tempCodeRunnerFile.py
+
+# OS/editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Coverage
+.coverage
+htmlcov/
+coverage.xml

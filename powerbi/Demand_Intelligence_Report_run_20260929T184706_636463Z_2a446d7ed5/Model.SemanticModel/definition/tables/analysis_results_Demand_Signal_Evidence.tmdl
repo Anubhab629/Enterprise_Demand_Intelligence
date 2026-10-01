@@ -1,0 +1,126 @@
+table analysis_results_Demand_Signal_Evidence
+	lineageTag: 41ba37e1-5115-4355-8fc8-4ad7fd82e942
+
+	measure 'Signal Relationship Count' = COUNTROWS('analysis_results_Demand_Signal_Evidence')
+		formatString: #,##0
+		lineageTag: 25483571-0e46-47ff-a746-f456479f3733
+
+	measure 'Average Relationship Strength' = AVERAGE('analysis_results_Demand_Signal_Evidence'[relationship_strength])
+		formatString: 0.00
+		lineageTag: 4133ab07-bb2a-4bb2-b126-07dbbc4d15c7
+
+	measure 'Strong Signal Relationships' = CALCULATE(COUNTROWS('analysis_results_Demand_Signal_Evidence'), 'analysis_results_Demand_Signal_Evidence'[relationship_strength] >= 0.7)
+		formatString: #,##0
+		lineageTag: 306bade5-cdfa-47a9-ab4a-30eaa2b03973
+
+	measure 'Signal Direction Count' = COUNTROWS('analysis_results_Demand_Signal_Evidence')
+		formatString: #,##0
+		lineageTag: 2d07cb0a-5f7e-48a6-9c59-3910b32ecf4a
+
+	column target_table
+		dataType: string
+		lineageTag: c2b43aa5-f1d0-480f-bf93-95d7bc08ec22
+		summarizeBy: none
+		sourceColumn: target_table
+
+	column target_time_column
+		dataType: string
+		lineageTag: 36ded0af-73b3-44ae-88d7-be2f4f9e95f8
+		summarizeBy: none
+		sourceColumn: target_time_column
+
+	column target_measure_column
+		dataType: string
+		lineageTag: 0bca28c4-33d7-4b76-aac8-6134be6f54ef
+		summarizeBy: none
+		sourceColumn: target_measure_column
+
+	column signal_table
+		dataType: string
+		lineageTag: 3fe1efe0-5388-4915-833b-d6e1fcf5656a
+		summarizeBy: none
+		sourceColumn: signal_table
+
+	column signal_time_column
+		dataType: string
+		lineageTag: 6c0bf20a-f10a-40b2-ad50-731ec8076924
+		summarizeBy: none
+		sourceColumn: signal_time_column
+
+	column signal_measure_column
+		dataType: string
+		lineageTag: bccfbdb5-8d25-48cb-851f-6dec184ea270
+		summarizeBy: none
+		sourceColumn: signal_measure_column
+
+	column lag_periods
+		dataType: int64
+		lineageTag: 62f3659e-ee69-43c4-a979-c234b4625918
+		summarizeBy: sum
+		sourceColumn: lag_periods
+
+	column aligned_observations
+		dataType: int64
+		lineageTag: bd76a5ce-e47c-42fe-809f-5f6e268d18ca
+		summarizeBy: sum
+		sourceColumn: aligned_observations
+
+	column level_correlation
+		dataType: double
+		lineageTag: 1106c3ae-c192-4fe9-bfdb-81aca82133b8
+		summarizeBy: sum
+		sourceColumn: level_correlation
+
+	column change_correlation
+		dataType: double
+		lineageTag: 6bfefede-5f91-4e96-bcc0-945202d9d6bc
+		summarizeBy: sum
+		sourceColumn: change_correlation
+
+	column directional_agreement
+		dataType: double
+		lineageTag: f6f93031-010e-4b2e-89fb-0c54024ebdc7
+		summarizeBy: sum
+		sourceColumn: directional_agreement
+
+	column direction
+		dataType: string
+		lineageTag: 33eb238e-9d1d-42a9-8b47-7eb95e2017ec
+		summarizeBy: none
+		sourceColumn: direction
+
+	column relationship_strength
+		dataType: double
+		lineageTag: a0cebc3a-712e-4fac-9bba-cf3a741da5c3
+		summarizeBy: sum
+		sourceColumn: relationship_strength
+
+	partition analysis_results_Demand_Signal_Evidence_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/analysis_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Demand_Signal_Evidence",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"target_table", type text},
+				            {"target_time_column", type text},
+				            {"target_measure_column", type text},
+				            {"signal_table", type text},
+				            {"signal_time_column", type text},
+				            {"signal_measure_column", type text},
+				            {"lag_periods", Int64.Type},
+				            {"aligned_observations", Int64.Type},
+				            {"level_correlation", type number},
+				            {"change_correlation", type number},
+				            {"directional_agreement", type number},
+				            {"direction", type text},
+				            {"relationship_strength", type number}
+				        }
+				    )
+				in
+				    TypedColumns
+

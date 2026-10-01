@@ -1,0 +1,54 @@
+table recommendation_results_Evidence_Summary
+	lineageTag: 31b5cf30-02cd-4148-bbaf-89f6fd71636d
+
+	column recommendation_type
+		dataType: string
+		lineageTag: 03694735-c35f-48fd-898e-97388df7927a
+		summarizeBy: none
+		sourceColumn: recommendation_type
+
+	column recommendation_count
+		dataType: int64
+		lineageTag: 5ffce81e-8433-4966-b8ad-ff04aad4fb90
+		summarizeBy: sum
+		sourceColumn: recommendation_count
+
+	column average_priority_score
+		dataType: double
+		lineageTag: a90f0928-50c4-4cfe-b703-7aa87dbc8d3b
+		summarizeBy: sum
+		sourceColumn: average_priority_score
+
+	column average_signal_count
+		dataType: double
+		lineageTag: da4b5902-86c3-4e31-a666-d9082e228128
+		summarizeBy: sum
+		sourceColumn: average_signal_count
+
+	column generated_recommendation_count
+		dataType: int64
+		lineageTag: 08c3fc18-da94-4b85-80c9-97c7cd78388d
+		summarizeBy: sum
+		sourceColumn: generated_recommendation_count
+
+	partition recommendation_results_Evidence_Summary_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/recommendation_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Evidence_Summary",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"recommendation_type", type text},
+				            {"recommendation_count", Int64.Type},
+				            {"average_priority_score", type number},
+				            {"average_signal_count", type number},
+				            {"generated_recommendation_count", Int64.Type}
+				        }
+				    )
+				in
+				    TypedColumns
+

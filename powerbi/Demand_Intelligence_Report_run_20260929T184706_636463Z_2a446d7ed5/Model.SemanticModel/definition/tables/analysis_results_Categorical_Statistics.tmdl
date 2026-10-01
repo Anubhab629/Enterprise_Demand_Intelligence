@@ -1,0 +1,75 @@
+table analysis_results_Categorical_Statistics
+	lineageTag: 14141ded-bbd5-4c39-8969-60864964234c
+
+	column table
+		dataType: string
+		lineageTag: 77de6120-b52a-4d62-99f2-7b5205964f86
+		summarizeBy: none
+		sourceColumn: table
+
+	column column
+		dataType: string
+		lineageTag: a6d04578-01b8-4c12-8975-d1e99ff6b503
+		summarizeBy: none
+		sourceColumn: column
+
+	column structural_type
+		dataType: string
+		lineageTag: 08f37365-9e6e-45dc-8f51-f1c27d873b33
+		summarizeBy: none
+		sourceColumn: structural_type
+
+	column non_null_count
+		dataType: int64
+		lineageTag: 2b93e8cd-46fd-41d3-8708-a025a420577e
+		summarizeBy: sum
+		sourceColumn: non_null_count
+
+	column unique_count
+		dataType: int64
+		lineageTag: 2c2280af-1366-463e-bde3-51c93f1530bc
+		summarizeBy: sum
+		sourceColumn: unique_count
+
+	column top_value
+		dataType: string
+		lineageTag: 667aad62-2ce4-4649-9e22-9058d3fa7392
+		summarizeBy: none
+		sourceColumn: top_value
+
+	column top_value_count
+		dataType: int64
+		lineageTag: 26e5cbf4-e672-4402-bd0f-264a7624e4e0
+		summarizeBy: sum
+		sourceColumn: top_value_count
+
+	column top_value_ratio
+		dataType: double
+		lineageTag: 08901395-feee-41f7-9cf3-fa4588d82945
+		summarizeBy: sum
+		sourceColumn: top_value_ratio
+
+	partition analysis_results_Categorical_Statistics_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/analysis_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Categorical_Statistics",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"table", type text},
+				            {"column", type text},
+				            {"structural_type", type text},
+				            {"non_null_count", Int64.Type},
+				            {"unique_count", Int64.Type},
+				            {"top_value", type text},
+				            {"top_value_count", Int64.Type},
+				            {"top_value_ratio", type number}
+				        }
+				    )
+				in
+				    TypedColumns
+

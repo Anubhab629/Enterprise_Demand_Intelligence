@@ -1,0 +1,68 @@
+table forecast_results_Forecast_Evidence
+	lineageTag: 683524e3-12f2-4b1a-a8e0-ffbc006f224d
+
+	column table
+		dataType: string
+		lineageTag: d3898c3e-c06f-4b0f-a6e7-c1da8f7b7086
+		summarizeBy: none
+		sourceColumn: table
+
+	column time_column
+		dataType: string
+		lineageTag: dd6cfa0a-b16e-4b1b-aab9-5567ac6f257a
+		summarizeBy: none
+		sourceColumn: time_column
+
+	column value_column
+		dataType: string
+		lineageTag: dadf58d5-a532-402a-910b-4c488600e58d
+		summarizeBy: none
+		sourceColumn: value_column
+
+	column candidate_score
+		dataType: double
+		lineageTag: 8a1c063d-d727-4ccb-b173-502ea3e8d81c
+		summarizeBy: sum
+		sourceColumn: candidate_score
+
+	column dimensions_considered
+		dataType: string
+		lineageTag: 6d95c647-98d7-4845-8a02-db1c9ced72c0
+		summarizeBy: none
+		sourceColumn: dimensions_considered
+
+	column forecast_series_produced
+		dataType: int64
+		lineageTag: c538664c-da0d-468b-bf80-86a8e1fa84d2
+		summarizeBy: sum
+		sourceColumn: forecast_series_produced
+
+	column status
+		dataType: string
+		lineageTag: b3356943-a3f7-45f0-b64b-66f6d0dba569
+		summarizeBy: none
+		sourceColumn: status
+
+	partition forecast_results_Forecast_Evidence_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/forecast_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Forecast_Evidence",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"table", type text},
+				            {"time_column", type text},
+				            {"value_column", type text},
+				            {"candidate_score", type number},
+				            {"dimensions_considered", type text},
+				            {"forecast_series_produced", Int64.Type},
+				            {"status", type text}
+				        }
+				    )
+				in
+				    TypedColumns
+

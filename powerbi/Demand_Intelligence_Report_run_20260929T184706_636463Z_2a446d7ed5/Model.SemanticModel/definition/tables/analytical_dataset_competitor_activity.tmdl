@@ -1,0 +1,187 @@
+table analytical_dataset_competitor_activity
+	lineageTag: 6ee29b72-847b-4ac0-a487-b82a82497558
+
+	column company_id
+		dataType: string
+		lineageTag: 57a2f412-1497-41c5-a2c9-a366984b81eb
+		summarizeBy: none
+		sourceColumn: company_id
+
+	column date
+		dataType: string
+		lineageTag: 803693ed-a019-49c5-be6d-3e1f35c32376
+		summarizeBy: none
+		sourceColumn: date
+
+	column competitor_activity
+		dataType: string
+		lineageTag: 26b54ec2-160c-4fc4-9c9c-28a41637b1ce
+		summarizeBy: none
+		sourceColumn: competitor_activity
+
+	column activity_intensity
+		dataType: int64
+		lineageTag: b54b3a6c-4c22-46a9-9919-48e7d2a98808
+		summarizeBy: sum
+		sourceColumn: activity_intensity
+
+	column competitor_discount_pct
+		dataType: double
+		lineageTag: 98fb3e0a-a09c-48d7-890f-247e4d4e9b1a
+		summarizeBy: sum
+		sourceColumn: competitor_discount_pct
+
+	column promotion_strength_pct
+		dataType: double
+		lineageTag: a4651bc7-b02b-4477-bc89-ba5a213920bc
+		summarizeBy: sum
+		sourceColumn: promotion_strength_pct
+
+	column new_product_flag
+		dataType: int64
+		lineageTag: 74c55f42-87b6-4de7-a028-ed08198bfd10
+		summarizeBy: sum
+		sourceColumn: new_product_flag
+
+	column factory_expansion_flag
+		dataType: int64
+		lineageTag: b7fc8398-1104-456a-be01-242066694e9e
+		summarizeBy: sum
+		sourceColumn: factory_expansion_flag
+
+	column competitor_count_active
+		dataType: double
+		lineageTag: 24e9b771-436b-421f-89d2-7a9196c173e5
+		summarizeBy: sum
+		sourceColumn: competitor_count_active
+
+	column date_year
+		dataType: int64
+		lineageTag: d469bf04-d486-4444-9d7f-963361b079e0
+		summarizeBy: sum
+		sourceColumn: date__year
+
+	column date_month
+		dataType: int64
+		lineageTag: 093bd8bf-92c2-40bf-99a6-d7be8635276f
+		summarizeBy: sum
+		sourceColumn: date__month
+
+	column date_quarter
+		dataType: int64
+		lineageTag: 98aa510b-736b-4e4e-bf36-418e7d9111d1
+		summarizeBy: sum
+		sourceColumn: date__quarter
+
+	column date_week
+		dataType: int64
+		lineageTag: c3cc7a8c-6df7-4cb3-ab01-57327a50f142
+		summarizeBy: sum
+		sourceColumn: date__week
+
+	column date_day_of_week
+		dataType: int64
+		lineageTag: 4a0b4d15-48ed-470c-a5b0-fe1a65eeab76
+		summarizeBy: sum
+		sourceColumn: date__day_of_week
+
+	column date_day_of_month
+		dataType: int64
+		lineageTag: e09df7b6-ddb8-4a9e-bba0-a501a287d0e0
+		summarizeBy: sum
+		sourceColumn: date__day_of_month
+
+	column date_day_of_year
+		dataType: int64
+		lineageTag: 2dbfba97-5fb9-4318-a029-a41996d061aa
+		summarizeBy: sum
+		sourceColumn: date__day_of_year
+
+	column date_is_month_start
+		dataType: boolean
+		lineageTag: 8bf9ff4b-f3c2-4ac4-9bb9-ac3b3a84be6b
+		summarizeBy: none
+		sourceColumn: date__is_month_start
+
+	column date_is_month_end
+		dataType: boolean
+		lineageTag: 6e3afc80-fb3a-4ebc-babb-80c97f61c523
+		summarizeBy: none
+		sourceColumn: date__is_month_end
+
+	column date_is_quarter_start
+		dataType: boolean
+		lineageTag: 00310683-fe91-46d2-a7f1-af3d4d329d3f
+		summarizeBy: none
+		sourceColumn: date__is_quarter_start
+
+	column date_is_quarter_end
+		dataType: boolean
+		lineageTag: 3c77f086-b64a-4475-ab48-ee50eedf9357
+		summarizeBy: none
+		sourceColumn: date__is_quarter_end
+
+	column numeric_non_null_count
+		dataType: int64
+		lineageTag: e9d34ffb-7ac2-47a5-a780-e96c33f7c214
+		summarizeBy: sum
+		sourceColumn: __numeric_non_null_count
+
+	column missing_value_count
+		dataType: int64
+		lineageTag: b7d89098-0f79-47c6-a54e-c6efa9d426cd
+		summarizeBy: sum
+		sourceColumn: __missing_value_count
+
+	column non_missing_value_count
+		dataType: int64
+		lineageTag: a5a8e786-1c05-446b-8480-7bdb8f3035b8
+		summarizeBy: sum
+		sourceColumn: __non_missing_value_count
+
+	column missing_value_ratio
+		dataType: int64
+		lineageTag: 853c1414-c9e1-4e50-931b-628fe70371fe
+		summarizeBy: sum
+		sourceColumn: __missing_value_ratio
+
+	partition analytical_dataset_competitor_activity_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/analytical_dataset.xlsx"), null, true),
+				    SheetData = Source{[Item="competitor_activity",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"company_id", type text},
+				            {"date", type text},
+				            {"competitor_activity", type text},
+				            {"activity_intensity", Int64.Type},
+				            {"competitor_discount_pct", type number},
+				            {"promotion_strength_pct", type number},
+				            {"new_product_flag", Int64.Type},
+				            {"factory_expansion_flag", Int64.Type},
+				            {"competitor_count_active", type number},
+				            {"date__year", Int64.Type},
+				            {"date__month", Int64.Type},
+				            {"date__quarter", Int64.Type},
+				            {"date__week", Int64.Type},
+				            {"date__day_of_week", Int64.Type},
+				            {"date__day_of_month", Int64.Type},
+				            {"date__day_of_year", Int64.Type},
+				            {"date__is_month_start", type logical},
+				            {"date__is_month_end", type logical},
+				            {"date__is_quarter_start", type logical},
+				            {"date__is_quarter_end", type logical},
+				            {"__numeric_non_null_count", Int64.Type},
+				            {"__missing_value_count", Int64.Type},
+				            {"__non_missing_value_count", Int64.Type},
+				            {"__missing_value_ratio", Int64.Type}
+				        }
+				    )
+				in
+				    TypedColumns
+

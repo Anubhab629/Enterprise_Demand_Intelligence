@@ -1,0 +1,61 @@
+table analysis_results_Temporal_Changes
+	lineageTag: 3359fbc9-7e64-482f-a2af-a5c57e6c6aba
+
+	column table
+		dataType: string
+		lineageTag: 3f3a4318-860c-45fa-a8bc-80170205e18d
+		summarizeBy: none
+		sourceColumn: table
+
+	column temporal_column
+		dataType: string
+		lineageTag: 4152cd93-9c55-455d-8e08-97c5725d83f1
+		summarizeBy: none
+		sourceColumn: temporal_column
+
+	column measure_column
+		dataType: string
+		lineageTag: 172cdfb4-e7c9-4e18-aaa6-56532aaa1848
+		summarizeBy: none
+		sourceColumn: measure_column
+
+	column period
+		dataType: string
+		lineageTag: 719973c0-43e0-4438-9d64-00dee7cb6be4
+		summarizeBy: none
+		sourceColumn: period
+
+	column value
+		dataType: double
+		lineageTag: f1f13e9e-56e9-481a-b520-1221191d8e3f
+		summarizeBy: sum
+		sourceColumn: value
+
+	column absolute_change
+		dataType: double
+		lineageTag: 862e66d8-b03c-43ba-bb22-4777b90687b7
+		summarizeBy: sum
+		sourceColumn: absolute_change
+
+	partition analysis_results_Temporal_Changes_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/analysis_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Temporal_Changes",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"table", type text},
+				            {"temporal_column", type text},
+				            {"measure_column", type text},
+				            {"period", type text},
+				            {"value", type number},
+				            {"absolute_change", type number}
+				        }
+				    )
+				in
+				    TypedColumns
+

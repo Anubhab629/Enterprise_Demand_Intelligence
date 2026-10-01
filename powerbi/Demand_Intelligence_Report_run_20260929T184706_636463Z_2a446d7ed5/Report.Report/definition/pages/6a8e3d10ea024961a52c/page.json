@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "6a8e3d10ea024961a52c",
+  "displayName": "Recommendations & Actions",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "annotations": [
+    {
+      "name": "PageQuestion",
+      "value": "What evidence-backed findings/actions were produced?"
+    }
+  ]
+}

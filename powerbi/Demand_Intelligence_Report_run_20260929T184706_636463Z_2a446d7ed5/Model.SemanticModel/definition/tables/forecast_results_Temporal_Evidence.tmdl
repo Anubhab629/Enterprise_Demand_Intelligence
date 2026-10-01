@@ -1,0 +1,33 @@
+table forecast_results_Temporal_Evidence
+	lineageTag: e374f08a-0f5d-49cb-abf5-5a8f4b631510
+
+	column table
+		dataType: string
+		lineageTag: 4ce63ca0-8f8f-4fb3-a994-67f404ae9c78
+		summarizeBy: none
+		sourceColumn: table
+
+	column column
+		dataType: string
+		lineageTag: e247fc63-cd98-435c-98ff-8c7d09b2717b
+		summarizeBy: none
+		sourceColumn: column
+
+	partition forecast_results_Temporal_Evidence_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/forecast_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Temporal_Evidence",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"table", type text},
+				            {"column", type text}
+				        }
+				    )
+				in
+				    TypedColumns
+

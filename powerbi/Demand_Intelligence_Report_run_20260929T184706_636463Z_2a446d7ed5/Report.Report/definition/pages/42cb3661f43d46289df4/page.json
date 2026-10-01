@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "42cb3661f43d46289df4",
+  "displayName": "Demand Intelligence",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "annotations": [
+    {
+      "name": "PageQuestion",
+      "value": "What demand patterns and signal relationships were discovered?"
+    }
+  ]
+}

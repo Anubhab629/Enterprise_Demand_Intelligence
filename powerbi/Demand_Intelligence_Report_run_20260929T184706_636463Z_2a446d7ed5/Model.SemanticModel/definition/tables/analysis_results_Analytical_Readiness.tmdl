@@ -1,0 +1,124 @@
+table analysis_results_Analytical_Readiness
+	lineageTag: 51e9e4d7-41f6-44eb-8249-4ebb268e5548
+
+	column table
+		dataType: string
+		lineageTag: 4876943d-8131-4fc7-aea7-4ec5b09c91a1
+		summarizeBy: none
+		sourceColumn: table
+
+	column row_count
+		dataType: int64
+		lineageTag: ef4395a5-022e-4f7f-ad08-8f0a3aba9b1e
+		summarizeBy: sum
+		sourceColumn: row_count
+
+	column column_count
+		dataType: int64
+		lineageTag: db57b7bc-0a7d-44ed-8901-9437d893a4ef
+		summarizeBy: sum
+		sourceColumn: column_count
+
+	column numeric_fields_available
+		dataType: int64
+		lineageTag: 0bc7131b-64c0-45a7-b5f7-b47737ddb222
+		summarizeBy: sum
+		sourceColumn: numeric_fields_available
+
+	column temporal_fields_available
+		dataType: int64
+		lineageTag: 6ba47bce-4d50-457e-a1cf-a47dae4a7b5a
+		summarizeBy: sum
+		sourceColumn: temporal_fields_available
+
+	column dimension_fields_available
+		dataType: int64
+		lineageTag: c6bf5e08-b869-40f7-96f7-fc0714454e9c
+		summarizeBy: sum
+		sourceColumn: dimension_fields_available
+
+	column identifier_candidates_available
+		dataType: int64
+		lineageTag: ce81f15d-9975-4dca-af5f-1282d40b49cc
+		summarizeBy: sum
+		sourceColumn: identifier_candidates_available
+
+	column demand_series_candidates
+		dataType: int64
+		lineageTag: dc552353-4106-48e6-befa-274abc99f6fa
+		summarizeBy: sum
+		sourceColumn: demand_series_candidates
+
+	column demand_signal_relationships
+		dataType: int64
+		lineageTag: 5da1a10f-9119-47f3-b82c-ba022fee7b17
+		summarizeBy: sum
+		sourceColumn: demand_signal_relationships
+
+	column has_numeric_analysis
+		dataType: boolean
+		lineageTag: 241697fb-da4f-46ba-8c25-24442066a3ca
+		summarizeBy: none
+		sourceColumn: has_numeric_analysis
+
+	column has_temporal_analysis
+		dataType: boolean
+		lineageTag: 2981894d-6570-4983-9d87-056c8b9cdc47
+		summarizeBy: none
+		sourceColumn: has_temporal_analysis
+
+	column has_dimension_analysis
+		dataType: boolean
+		lineageTag: bfcefa80-47e0-49c6-8eae-bd542dba9d73
+		summarizeBy: none
+		sourceColumn: has_dimension_analysis
+
+	column has_relationship_evidence
+		dataType: boolean
+		lineageTag: fafb3d05-94ae-41c8-9b15-88e44ca51f98
+		summarizeBy: none
+		sourceColumn: has_relationship_evidence
+
+	column has_demand_candidate_evidence
+		dataType: boolean
+		lineageTag: a3307684-cb72-4ffc-9914-d34e5654f6a9
+		summarizeBy: none
+		sourceColumn: has_demand_candidate_evidence
+
+	column has_demand_signal_evidence
+		dataType: boolean
+		lineageTag: d7d5f629-9e43-49f8-b5db-70f8022a562c
+		summarizeBy: none
+		sourceColumn: has_demand_signal_evidence
+
+	partition analysis_results_Analytical_Readiness_Partition = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20260929T184706_636463Z_2a446d7ed5/analysis_results.xlsx"), null, true),
+				    SheetData = Source{[Item="Analytical_Readiness",Kind="Sheet"]}[Data],
+				    PromotedHeaders = Table.PromoteHeaders(
+				        SheetData, [PromoteAllScalars=true]),
+				    TypedColumns = Table.TransformColumnTypes(
+				        PromotedHeaders,
+				        {
+				            {"table", type text},
+				            {"row_count", Int64.Type},
+				            {"column_count", Int64.Type},
+				            {"numeric_fields_available", Int64.Type},
+				            {"temporal_fields_available", Int64.Type},
+				            {"dimension_fields_available", Int64.Type},
+				            {"identifier_candidates_available", Int64.Type},
+				            {"demand_series_candidates", Int64.Type},
+				            {"demand_signal_relationships", Int64.Type},
+				            {"has_numeric_analysis", type logical},
+				            {"has_temporal_analysis", type logical},
+				            {"has_dimension_analysis", type logical},
+				            {"has_relationship_evidence", type logical},
+				            {"has_demand_candidate_evidence", type logical},
+				            {"has_demand_signal_evidence", type logical}
+				        }
+				    )
+				in
+				    TypedColumns
+
