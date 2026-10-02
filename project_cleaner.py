@@ -271,7 +271,7 @@ def display_inventory(
 ) -> None:
     root = project_root()
     print("\n" + "=" * 78)
-    print("PROJECT CLEANER â€” INSPECTION")
+    print("PROJECT CLEANER Ã¢â‚¬â€ INSPECTION")
     print("=" * 78)
     print(f"Project root : {root}")
     print(f"Keep recent  : {keep} runs per managed location")
