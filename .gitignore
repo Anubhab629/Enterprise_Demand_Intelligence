@@ -56,3 +56,5 @@ Thumbs.db
 .coverage
 htmlcov/
 coverage.xml
+
+powerbi/Demand_Intelligence_Report_run_*/
