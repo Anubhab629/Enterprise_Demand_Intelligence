@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "7af7bbc25b08412e8a47",
+  "displayName": "Record Explorer",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "annotations": [
+    {
+      "name": "PageQuestion",
+      "value": "Row-level investigation for the current run."
+    }
+  ]
+}

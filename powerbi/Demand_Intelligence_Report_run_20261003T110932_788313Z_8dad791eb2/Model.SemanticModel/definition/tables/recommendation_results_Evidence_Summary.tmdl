@@ -1,0 +1,46 @@
+table 'recommendation_results_Evidence_Summary'
+    column 'recommendation_type'
+        dataType: string
+        sourceColumn: "recommendation_type"
+        summarizeBy: none
+
+    column 'recommendation_count'
+        dataType: int64
+        sourceColumn: "recommendation_count"
+        summarizeBy: sum
+
+    column 'average_priority_score'
+        dataType: double
+        sourceColumn: "average_priority_score"
+        summarizeBy: sum
+
+    column 'average_signal_count'
+        dataType: double
+        sourceColumn: "average_signal_count"
+        summarizeBy: sum
+
+    column 'generated_recommendation_count'
+        dataType: int64
+        sourceColumn: "generated_recommendation_count"
+        summarizeBy: sum
+
+    partition 'recommendation_results_Evidence_Summary_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/recommendation_results.xlsx"), null, true),
+                SheetData = Source{[Item="Evidence_Summary",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"recommendation_type", type text},
+                        {"recommendation_count", Int64.Type},
+                        {"average_priority_score", type number},
+                        {"average_signal_count", type number},
+                        {"generated_recommendation_count", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns

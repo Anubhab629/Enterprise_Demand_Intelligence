@@ -1,0 +1,243 @@
+table 'analytical_dataset_customer_orders'
+    column 'order_id'
+        dataType: string
+        sourceColumn: "order_id"
+        summarizeBy: none
+
+    column 'company_id'
+        dataType: string
+        sourceColumn: "company_id"
+        summarizeBy: none
+
+    column 'order_date'
+        dataType: string
+        sourceColumn: "order_date"
+        summarizeBy: none
+
+    column 'expected_delivery_date'
+        dataType: string
+        sourceColumn: "expected_delivery_date"
+        summarizeBy: none
+
+    column 'product'
+        dataType: string
+        sourceColumn: "product"
+        summarizeBy: none
+
+    column 'customer_id'
+        dataType: string
+        sourceColumn: "customer_id"
+        summarizeBy: none
+
+    column 'order_units'
+        dataType: int64
+        sourceColumn: "order_units"
+        summarizeBy: sum
+
+    column 'order_status'
+        dataType: string
+        sourceColumn: "order_status"
+        summarizeBy: none
+
+    column 'order_value_inr'
+        dataType: int64
+        sourceColumn: "order_value_inr"
+        summarizeBy: sum
+
+    column 'order_priority'
+        dataType: int64
+        sourceColumn: "order_priority"
+        summarizeBy: sum
+
+    column 'payment_delay_days'
+        dataType: int64
+        sourceColumn: "payment_delay_days"
+        summarizeBy: sum
+
+    column 'order_date_year'
+        dataType: int64
+        sourceColumn: "order_date__year"
+        summarizeBy: sum
+
+    column 'order_date_month'
+        dataType: int64
+        sourceColumn: "order_date__month"
+        summarizeBy: sum
+
+    column 'order_date_quarter'
+        dataType: int64
+        sourceColumn: "order_date__quarter"
+        summarizeBy: sum
+
+    column 'order_date_week'
+        dataType: int64
+        sourceColumn: "order_date__week"
+        summarizeBy: sum
+
+    column 'order_date_day_of_week'
+        dataType: int64
+        sourceColumn: "order_date__day_of_week"
+        summarizeBy: sum
+
+    column 'order_date_day_of_month'
+        dataType: int64
+        sourceColumn: "order_date__day_of_month"
+        summarizeBy: sum
+
+    column 'order_date_day_of_year'
+        dataType: int64
+        sourceColumn: "order_date__day_of_year"
+        summarizeBy: sum
+
+    column 'order_date_is_month_start'
+        dataType: boolean
+        sourceColumn: "order_date__is_month_start"
+        summarizeBy: none
+
+    column 'order_date_is_month_end'
+        dataType: boolean
+        sourceColumn: "order_date__is_month_end"
+        summarizeBy: none
+
+    column 'order_date_is_quarter_start'
+        dataType: boolean
+        sourceColumn: "order_date__is_quarter_start"
+        summarizeBy: none
+
+    column 'order_date_is_quarter_end'
+        dataType: boolean
+        sourceColumn: "order_date__is_quarter_end"
+        summarizeBy: none
+
+    column 'expected_delivery_date_year'
+        dataType: int64
+        sourceColumn: "expected_delivery_date__year"
+        summarizeBy: sum
+
+    column 'expected_delivery_date_month'
+        dataType: int64
+        sourceColumn: "expected_delivery_date__month"
+        summarizeBy: sum
+
+    column 'expected_delivery_date_quarter'
+        dataType: int64
+        sourceColumn: "expected_delivery_date__quarter"
+        summarizeBy: sum
+
+    column 'expected_delivery_date_week'
+        dataType: int64
+        sourceColumn: "expected_delivery_date__week"
+        summarizeBy: sum
+
+    column 'expected_delivery_date_day_of_week'
+        dataType: int64
+        sourceColumn: "expected_delivery_date__day_of_week"
+        summarizeBy: sum
+
+    column 'expected_delivery_date_day_of_month'
+        dataType: int64
+        sourceColumn: "expected_delivery_date__day_of_month"
+        summarizeBy: sum
+
+    column 'expected_delivery_date_day_of_year'
+        dataType: int64
+        sourceColumn: "expected_delivery_date__day_of_year"
+        summarizeBy: sum
+
+    column 'expected_delivery_date_is_month_start'
+        dataType: boolean
+        sourceColumn: "expected_delivery_date__is_month_start"
+        summarizeBy: none
+
+    column 'expected_delivery_date_is_month_end'
+        dataType: boolean
+        sourceColumn: "expected_delivery_date__is_month_end"
+        summarizeBy: none
+
+    column 'expected_delivery_date_is_quarter_start'
+        dataType: boolean
+        sourceColumn: "expected_delivery_date__is_quarter_start"
+        summarizeBy: none
+
+    column 'expected_delivery_date_is_quarter_end'
+        dataType: boolean
+        sourceColumn: "expected_delivery_date__is_quarter_end"
+        summarizeBy: none
+
+    column 'numeric_non_null_count'
+        dataType: int64
+        sourceColumn: "__numeric_non_null_count"
+        summarizeBy: sum
+
+    column 'missing_value_count'
+        dataType: int64
+        sourceColumn: "__missing_value_count"
+        summarizeBy: sum
+
+    column 'non_missing_value_count'
+        dataType: int64
+        sourceColumn: "__non_missing_value_count"
+        summarizeBy: sum
+
+    column 'missing_value_ratio'
+        dataType: int64
+        sourceColumn: "__missing_value_ratio"
+        summarizeBy: sum
+
+    partition 'analytical_dataset_customer_orders_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analytical_dataset.xlsx"), null, true),
+                SheetData = Source{[Item="customer_orders",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"order_id", type text},
+                        {"company_id", type text},
+                        {"order_date", type text},
+                        {"expected_delivery_date", type text},
+                        {"product", type text},
+                        {"customer_id", type text},
+                        {"order_units", Int64.Type},
+                        {"order_status", type text},
+                        {"order_value_inr", Int64.Type},
+                        {"order_priority", Int64.Type},
+                        {"payment_delay_days", Int64.Type},
+                        {"order_date__year", Int64.Type},
+                        {"order_date__month", Int64.Type},
+                        {"order_date__quarter", Int64.Type},
+                        {"order_date__week", Int64.Type},
+                        {"order_date__day_of_week", Int64.Type},
+                        {"order_date__day_of_month", Int64.Type},
+                        {"order_date__day_of_year", Int64.Type},
+                        {"order_date__is_month_start", type logical},
+                        {"order_date__is_month_end", type logical},
+                        {"order_date__is_quarter_start", type logical},
+                        {"order_date__is_quarter_end", type logical},
+                        {"expected_delivery_date__year", Int64.Type},
+                        {"expected_delivery_date__month", Int64.Type},
+                        {"expected_delivery_date__quarter", Int64.Type},
+                        {"expected_delivery_date__week", Int64.Type},
+                        {"expected_delivery_date__day_of_week", Int64.Type},
+                        {"expected_delivery_date__day_of_month", Int64.Type},
+                        {"expected_delivery_date__day_of_year", Int64.Type},
+                        {"expected_delivery_date__is_month_start", type logical},
+                        {"expected_delivery_date__is_month_end", type logical},
+                        {"expected_delivery_date__is_quarter_start", type logical},
+                        {"expected_delivery_date__is_quarter_end", type logical},
+                        {"__numeric_non_null_count", Int64.Type},
+                        {"__missing_value_count", Int64.Type},
+                        {"__non_missing_value_count", Int64.Type},
+                        {"__missing_value_ratio", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns
+    measure 'Source Records' = COUNTROWS('analytical_dataset_companies') + COUNTROWS('analytical_dataset_economic_indicators') + COUNTROWS('analytical_dataset_commodity_prices') + COUNTROWS('analytical_dataset_weather') + COUNTROWS('analytical_dataset_market_trends') + COUNTROWS('analytical_dataset_competitor_activity') + COUNTROWS('analytical_dataset_sales') + COUNTROWS('analytical_dataset_production') + COUNTROWS('analytical_dataset_customer_orders') + COUNTROWS('analytical_dataset_demand_sensing_daily')
+        formatString: #,##0
+    measure 'Explorer Filtered Records' = COUNTROWS('analytical_dataset_customer_orders')
+        formatString: #,##0
+

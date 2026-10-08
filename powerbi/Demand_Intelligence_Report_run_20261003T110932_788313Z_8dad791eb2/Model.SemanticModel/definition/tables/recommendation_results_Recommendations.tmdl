@@ -1,0 +1,151 @@
+table 'recommendation_results_Recommendations'
+    column 'recommendation_id'
+        dataType: string
+        sourceColumn: "recommendation_id"
+        summarizeBy: none
+
+    column 'recommendation_type'
+        dataType: string
+        sourceColumn: "recommendation_type"
+        summarizeBy: none
+
+    column 'source_table'
+        dataType: string
+        sourceColumn: "source_table"
+        summarizeBy: none
+
+    column 'source_column'
+        dataType: string
+        sourceColumn: "source_column"
+        summarizeBy: none
+
+    column 'entity'
+        dataType: string
+        sourceColumn: "entity"
+        summarizeBy: none
+
+    column 'scope'
+        dataType: string
+        sourceColumn: "scope"
+        summarizeBy: none
+
+    column 'finding'
+        dataType: string
+        sourceColumn: "finding"
+        summarizeBy: none
+
+    column 'recommendation'
+        dataType: string
+        sourceColumn: "recommendation"
+        summarizeBy: none
+
+    column 'recommendation_rationale'
+        dataType: string
+        sourceColumn: "recommendation_rationale"
+        summarizeBy: none
+
+    column 'expected_impact'
+        dataType: string
+        sourceColumn: "expected_impact"
+        summarizeBy: none
+
+    column 'risk'
+        dataType: string
+        sourceColumn: "risk"
+        summarizeBy: none
+
+    column 'evidence'
+        dataType: string
+        sourceColumn: "evidence"
+        summarizeBy: none
+
+    column 'priority_score'
+        dataType: double
+        sourceColumn: "priority_score"
+        summarizeBy: sum
+
+    column 'priority_level'
+        dataType: string
+        sourceColumn: "priority_level"
+        summarizeBy: none
+
+    column 'supporting_signal_count'
+        dataType: int64
+        sourceColumn: "supporting_signal_count"
+        summarizeBy: sum
+
+    column 'forecast_available'
+        dataType: boolean
+        sourceColumn: "forecast_available"
+        summarizeBy: none
+
+    column 'recommendation_generation_status'
+        dataType: string
+        sourceColumn: "recommendation_generation_status"
+        summarizeBy: none
+
+    column 'entity_attribute'
+        dataType: string
+        sourceColumn: "entity_attribute"
+        summarizeBy: none
+
+    column 'entity_value'
+        dataType: string
+        sourceColumn: "entity_value"
+        summarizeBy: none
+
+    column 'entity_context'
+        dataType: string
+        sourceColumn: "entity_context"
+        summarizeBy: none
+
+    column 'evidence_summary'
+        dataType: string
+        sourceColumn: "evidence_summary"
+        summarizeBy: none
+
+    partition 'recommendation_results_Recommendations_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/recommendation_results.xlsx"), null, true),
+                SheetData = Source{[Item="Recommendations",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"recommendation_id", type text},
+                        {"recommendation_type", type text},
+                        {"source_table", type text},
+                        {"source_column", type text},
+                        {"entity", type text},
+                        {"scope", type text},
+                        {"finding", type text},
+                        {"recommendation", type text},
+                        {"recommendation_rationale", type text},
+                        {"expected_impact", type text},
+                        {"risk", type text},
+                        {"evidence", type text},
+                        {"priority_score", type number},
+                        {"priority_level", type text},
+                        {"supporting_signal_count", Int64.Type},
+                        {"forecast_available", type logical},
+                        {"recommendation_generation_status", type text},
+                        {"entity_attribute", type text},
+                        {"entity_value", type text},
+                        {"entity_context", type text},
+                        {"evidence_summary", type text}
+                    }
+                )
+            in
+                TypedColumns
+    measure 'Recommendation Count' = COUNTROWS('recommendation_results_Recommendations')
+        formatString: #,##0
+    measure 'Average Priority Score' = AVERAGE('recommendation_results_Recommendations'[priority_score])
+        formatString: 0.00
+    measure 'Recommendation Priority Count' = COUNTROWS('recommendation_results_Recommendations')
+        formatString: #,##0
+    measure 'Recommendation Type Count' = COUNTROWS('recommendation_results_Recommendations')
+        formatString: #,##0
+

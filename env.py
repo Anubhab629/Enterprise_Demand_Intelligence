@@ -103,6 +103,7 @@ CURRENT_VALUES: dict[str, Any] = {
     # These are limits, NOT dataset schema assumptions.
     "MAX_ACCESS_BOUNDARY_CARDINALITY": 100,
     "MAX_DATASET_FILE_SIZE_MB": 500,
+    "MAX_COMPANIES_PER_DATASET": 25,
 
     # Default/current input settings.
     #
@@ -216,7 +217,6 @@ RAW_ARCHIVE_PATH = RAW_DATA_DIRECTORY / CURRENT_VALUES["RAW_ARCHIVE_NAME"]
 ACTIVE_DATASET_PATH = (
     PROJECT_ROOT / CURRENT_VALUES["ACTIVE_DATASET_PATH"]
 )
-
 
 # ============================================================
 # DATASET FORMAT CONFIGURATION

@@ -1,0 +1,215 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "a418d4f4c58a4ca2bc33",
+  "position": {
+    "x": 24,
+    "y": 485,
+    "z": 2100,
+    "height": 210,
+    "width": 1208,
+    "tabOrder": 2100
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "recommendation_results_Recommendations"
+                    }
+                  },
+                  "Property": "entity_attribute"
+                }
+              },
+              "queryRef": "recommendation_results_Recommendations.entity_attribute",
+              "nativeQueryRef": "entity_attribute",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "recommendation_results_Recommendations"
+                    }
+                  },
+                  "Property": "entity_value"
+                }
+              },
+              "queryRef": "recommendation_results_Recommendations.entity_value",
+              "nativeQueryRef": "entity_value",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "recommendation_results_Recommendations"
+                    }
+                  },
+                  "Property": "priority_level"
+                }
+              },
+              "queryRef": "recommendation_results_Recommendations.priority_level",
+              "nativeQueryRef": "priority_level",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "recommendation_results_Recommendations"
+                    }
+                  },
+                  "Property": "finding"
+                }
+              },
+              "queryRef": "recommendation_results_Recommendations.finding",
+              "nativeQueryRef": "finding",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "recommendation_results_Recommendations"
+                    }
+                  },
+                  "Property": "recommendation"
+                }
+              },
+              "queryRef": "recommendation_results_Recommendations.recommendation",
+              "nativeQueryRef": "recommendation",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "recommendation_results_Recommendations"
+                    }
+                  },
+                  "Property": "evidence_summary"
+                }
+              },
+              "queryRef": "recommendation_results_Recommendations.evidence_summary",
+              "nativeQueryRef": "evidence_summary",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Evidence-Backed Recommendations'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,58 @@
+table 'forecast_results_Forecast_Evidence'
+    column 'table'
+        dataType: string
+        sourceColumn: "table"
+        summarizeBy: none
+
+    column 'time_column'
+        dataType: string
+        sourceColumn: "time_column"
+        summarizeBy: none
+
+    column 'value_column'
+        dataType: string
+        sourceColumn: "value_column"
+        summarizeBy: none
+
+    column 'candidate_score'
+        dataType: double
+        sourceColumn: "candidate_score"
+        summarizeBy: sum
+
+    column 'dimensions_considered'
+        dataType: string
+        sourceColumn: "dimensions_considered"
+        summarizeBy: none
+
+    column 'forecast_series_produced'
+        dataType: int64
+        sourceColumn: "forecast_series_produced"
+        summarizeBy: sum
+
+    column 'status'
+        dataType: string
+        sourceColumn: "status"
+        summarizeBy: none
+
+    partition 'forecast_results_Forecast_Evidence_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/forecast_results.xlsx"), null, true),
+                SheetData = Source{[Item="Forecast_Evidence",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"table", type text},
+                        {"time_column", type text},
+                        {"value_column", type text},
+                        {"candidate_score", type number},
+                        {"dimensions_considered", type text},
+                        {"forecast_series_produced", Int64.Type},
+                        {"status", type text}
+                    }
+                )
+            in
+                TypedColumns

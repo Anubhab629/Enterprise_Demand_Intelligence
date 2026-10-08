@@ -1,0 +1,185 @@
+table 'forecast_results_Forecasts'
+    column 'table'
+        dataType: string
+        sourceColumn: "table"
+        summarizeBy: none
+
+    column 'time_column'
+        dataType: string
+        sourceColumn: "time_column"
+        summarizeBy: none
+
+    column 'value_column'
+        dataType: string
+        sourceColumn: "value_column"
+        summarizeBy: none
+
+    column 'ForecastStart'
+        dataType: dateTime
+        sourceColumn: "ForecastStart"
+        summarizeBy: none
+
+    column 'ForecastEnd'
+        dataType: dateTime
+        sourceColumn: "ForecastEnd"
+        summarizeBy: none
+
+    column 'HistoryPoints'
+        dataType: int64
+        sourceColumn: "HistoryPoints"
+        summarizeBy: sum
+
+    column 'RecentAverage'
+        dataType: double
+        sourceColumn: "RecentAverage"
+        summarizeBy: sum
+
+    column 'BaselineAverage'
+        dataType: double
+        sourceColumn: "BaselineAverage"
+        summarizeBy: sum
+
+    column 'ForecastAverage'
+        dataType: double
+        sourceColumn: "ForecastAverage"
+        summarizeBy: sum
+
+    column 'ForecastTotal'
+        dataType: double
+        sourceColumn: "ForecastTotal"
+        summarizeBy: sum
+
+    column 'LowerForecastTotal'
+        dataType: double
+        sourceColumn: "LowerForecastTotal"
+        summarizeBy: sum
+
+    column 'UpperForecastTotal'
+        dataType: double
+        sourceColumn: "UpperForecastTotal"
+        summarizeBy: sum
+
+    column 'Volatility'
+        dataType: double
+        sourceColumn: "Volatility"
+        summarizeBy: sum
+
+    column 'CoefficientOfVariation'
+        dataType: double
+        sourceColumn: "CoefficientOfVariation"
+        summarizeBy: sum
+
+    column 'RecentVsBaselineChangePct'
+        dataType: double
+        sourceColumn: "RecentVsBaselineChangePct"
+        summarizeBy: sum
+
+    column 'ForecastConfidence'
+        dataType: string
+        sourceColumn: "ForecastConfidence"
+        summarizeBy: none
+
+    column 'FrequencyEvidence'
+        dataType: string
+        sourceColumn: "FrequencyEvidence"
+        summarizeBy: none
+
+    column 'ForecastPoints'
+        dataType: int64
+        sourceColumn: "ForecastPoints"
+        summarizeBy: sum
+
+    column 'ForecastHorizonDays'
+        dataType: int64
+        sourceColumn: "ForecastHorizonDays"
+        summarizeBy: sum
+
+    column 'candidate_score'
+        dataType: double
+        sourceColumn: "candidate_score"
+        summarizeBy: sum
+
+    column 'company_id'
+        dataType: string
+        sourceColumn: "company_id"
+        summarizeBy: none
+
+    column 'product'
+        dataType: string
+        sourceColumn: "product"
+        summarizeBy: none
+
+    column 'competitor_activity'
+        dataType: string
+        sourceColumn: "competitor_activity"
+        summarizeBy: none
+
+    column 'customer_id'
+        dataType: string
+        sourceColumn: "customer_id"
+        summarizeBy: none
+
+    column 'order_status'
+        dataType: string
+        sourceColumn: "order_status"
+        summarizeBy: none
+
+    column 'DemandTrend'
+        dataType: string
+        sourceColumn: "DemandTrend"
+        summarizeBy: none
+
+    partition 'forecast_results_Forecasts_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/forecast_results.xlsx"), null, true),
+                SheetData = Source{[Item="Forecasts",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"table", type text},
+                        {"time_column", type text},
+                        {"value_column", type text},
+                        {"ForecastStart", type datetime},
+                        {"ForecastEnd", type datetime},
+                        {"HistoryPoints", Int64.Type},
+                        {"RecentAverage", type number},
+                        {"BaselineAverage", type number},
+                        {"ForecastAverage", type number},
+                        {"ForecastTotal", type number},
+                        {"LowerForecastTotal", type number},
+                        {"UpperForecastTotal", type number},
+                        {"Volatility", type number},
+                        {"CoefficientOfVariation", type number},
+                        {"RecentVsBaselineChangePct", type number},
+                        {"ForecastConfidence", type text},
+                        {"FrequencyEvidence", type text},
+                        {"ForecastPoints", Int64.Type},
+                        {"ForecastHorizonDays", Int64.Type},
+                        {"candidate_score", type number},
+                        {"company_id", type text},
+                        {"product", type text},
+                        {"competitor_activity", type text},
+                        {"customer_id", type text},
+                        {"order_status", type text},
+                        {"DemandTrend", type text}
+                    }
+                )
+            in
+                TypedColumns
+    measure 'Forecast Series Count' = COUNTROWS('forecast_results_Forecasts')
+        formatString: #,##0
+    measure 'Average Forecast Horizon' = AVERAGE('forecast_results_Forecasts'[ForecastHorizonDays])
+        formatString: 0
+    measure 'Average Recent vs Baseline Change' = AVERAGE('forecast_results_Forecasts'[RecentVsBaselineChangePct])
+        formatString: 0.00
+    measure 'Executive Forecast Trend Count' = COUNTROWS('forecast_results_Forecasts')
+        formatString: #,##0
+    measure 'Forecast Trend Count' = COUNTROWS('forecast_results_Forecasts')
+        formatString: #,##0
+    measure 'Forecast Confidence Count' = COUNTROWS('forecast_results_Forecasts')
+        formatString: #,##0
+

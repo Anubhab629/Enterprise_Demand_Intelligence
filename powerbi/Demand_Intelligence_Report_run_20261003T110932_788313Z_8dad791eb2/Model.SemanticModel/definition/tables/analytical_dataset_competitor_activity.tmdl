@@ -1,0 +1,160 @@
+table 'analytical_dataset_competitor_activity'
+    column 'company_id'
+        dataType: string
+        sourceColumn: "company_id"
+        summarizeBy: none
+
+    column 'date'
+        dataType: string
+        sourceColumn: "date"
+        summarizeBy: none
+
+    column 'competitor_activity'
+        dataType: string
+        sourceColumn: "competitor_activity"
+        summarizeBy: none
+
+    column 'activity_intensity'
+        dataType: int64
+        sourceColumn: "activity_intensity"
+        summarizeBy: sum
+
+    column 'competitor_discount_pct'
+        dataType: double
+        sourceColumn: "competitor_discount_pct"
+        summarizeBy: sum
+
+    column 'promotion_strength_pct'
+        dataType: double
+        sourceColumn: "promotion_strength_pct"
+        summarizeBy: sum
+
+    column 'new_product_flag'
+        dataType: int64
+        sourceColumn: "new_product_flag"
+        summarizeBy: sum
+
+    column 'factory_expansion_flag'
+        dataType: int64
+        sourceColumn: "factory_expansion_flag"
+        summarizeBy: sum
+
+    column 'competitor_count_active'
+        dataType: double
+        sourceColumn: "competitor_count_active"
+        summarizeBy: sum
+
+    column 'date_year'
+        dataType: int64
+        sourceColumn: "date__year"
+        summarizeBy: sum
+
+    column 'date_month'
+        dataType: int64
+        sourceColumn: "date__month"
+        summarizeBy: sum
+
+    column 'date_quarter'
+        dataType: int64
+        sourceColumn: "date__quarter"
+        summarizeBy: sum
+
+    column 'date_week'
+        dataType: int64
+        sourceColumn: "date__week"
+        summarizeBy: sum
+
+    column 'date_day_of_week'
+        dataType: int64
+        sourceColumn: "date__day_of_week"
+        summarizeBy: sum
+
+    column 'date_day_of_month'
+        dataType: int64
+        sourceColumn: "date__day_of_month"
+        summarizeBy: sum
+
+    column 'date_day_of_year'
+        dataType: int64
+        sourceColumn: "date__day_of_year"
+        summarizeBy: sum
+
+    column 'date_is_month_start'
+        dataType: boolean
+        sourceColumn: "date__is_month_start"
+        summarizeBy: none
+
+    column 'date_is_month_end'
+        dataType: boolean
+        sourceColumn: "date__is_month_end"
+        summarizeBy: none
+
+    column 'date_is_quarter_start'
+        dataType: boolean
+        sourceColumn: "date__is_quarter_start"
+        summarizeBy: none
+
+    column 'date_is_quarter_end'
+        dataType: boolean
+        sourceColumn: "date__is_quarter_end"
+        summarizeBy: none
+
+    column 'numeric_non_null_count'
+        dataType: int64
+        sourceColumn: "__numeric_non_null_count"
+        summarizeBy: sum
+
+    column 'missing_value_count'
+        dataType: int64
+        sourceColumn: "__missing_value_count"
+        summarizeBy: sum
+
+    column 'non_missing_value_count'
+        dataType: int64
+        sourceColumn: "__non_missing_value_count"
+        summarizeBy: sum
+
+    column 'missing_value_ratio'
+        dataType: int64
+        sourceColumn: "__missing_value_ratio"
+        summarizeBy: sum
+
+    partition 'analytical_dataset_competitor_activity_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analytical_dataset.xlsx"), null, true),
+                SheetData = Source{[Item="competitor_activity",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"company_id", type text},
+                        {"date", type text},
+                        {"competitor_activity", type text},
+                        {"activity_intensity", Int64.Type},
+                        {"competitor_discount_pct", type number},
+                        {"promotion_strength_pct", type number},
+                        {"new_product_flag", Int64.Type},
+                        {"factory_expansion_flag", Int64.Type},
+                        {"competitor_count_active", type number},
+                        {"date__year", Int64.Type},
+                        {"date__month", Int64.Type},
+                        {"date__quarter", Int64.Type},
+                        {"date__week", Int64.Type},
+                        {"date__day_of_week", Int64.Type},
+                        {"date__day_of_month", Int64.Type},
+                        {"date__day_of_year", Int64.Type},
+                        {"date__is_month_start", type logical},
+                        {"date__is_month_end", type logical},
+                        {"date__is_quarter_start", type logical},
+                        {"date__is_quarter_end", type logical},
+                        {"__numeric_non_null_count", Int64.Type},
+                        {"__missing_value_count", Int64.Type},
+                        {"__non_missing_value_count", Int64.Type},
+                        {"__missing_value_ratio", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns

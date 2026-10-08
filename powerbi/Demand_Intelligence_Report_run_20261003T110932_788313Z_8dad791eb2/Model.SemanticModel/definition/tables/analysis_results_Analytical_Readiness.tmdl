@@ -1,0 +1,106 @@
+table 'analysis_results_Analytical_Readiness'
+    column 'table'
+        dataType: string
+        sourceColumn: "table"
+        summarizeBy: none
+
+    column 'row_count'
+        dataType: int64
+        sourceColumn: "row_count"
+        summarizeBy: sum
+
+    column 'column_count'
+        dataType: int64
+        sourceColumn: "column_count"
+        summarizeBy: sum
+
+    column 'numeric_fields_available'
+        dataType: int64
+        sourceColumn: "numeric_fields_available"
+        summarizeBy: sum
+
+    column 'temporal_fields_available'
+        dataType: int64
+        sourceColumn: "temporal_fields_available"
+        summarizeBy: sum
+
+    column 'dimension_fields_available'
+        dataType: int64
+        sourceColumn: "dimension_fields_available"
+        summarizeBy: sum
+
+    column 'identifier_candidates_available'
+        dataType: int64
+        sourceColumn: "identifier_candidates_available"
+        summarizeBy: sum
+
+    column 'demand_series_candidates'
+        dataType: int64
+        sourceColumn: "demand_series_candidates"
+        summarizeBy: sum
+
+    column 'demand_signal_relationships'
+        dataType: int64
+        sourceColumn: "demand_signal_relationships"
+        summarizeBy: sum
+
+    column 'has_numeric_analysis'
+        dataType: boolean
+        sourceColumn: "has_numeric_analysis"
+        summarizeBy: none
+
+    column 'has_temporal_analysis'
+        dataType: boolean
+        sourceColumn: "has_temporal_analysis"
+        summarizeBy: none
+
+    column 'has_dimension_analysis'
+        dataType: boolean
+        sourceColumn: "has_dimension_analysis"
+        summarizeBy: none
+
+    column 'has_relationship_evidence'
+        dataType: boolean
+        sourceColumn: "has_relationship_evidence"
+        summarizeBy: none
+
+    column 'has_demand_candidate_evidence'
+        dataType: boolean
+        sourceColumn: "has_demand_candidate_evidence"
+        summarizeBy: none
+
+    column 'has_demand_signal_evidence'
+        dataType: boolean
+        sourceColumn: "has_demand_signal_evidence"
+        summarizeBy: none
+
+    partition 'analysis_results_Analytical_Readiness_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analysis_results.xlsx"), null, true),
+                SheetData = Source{[Item="Analytical_Readiness",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"table", type text},
+                        {"row_count", Int64.Type},
+                        {"column_count", Int64.Type},
+                        {"numeric_fields_available", Int64.Type},
+                        {"temporal_fields_available", Int64.Type},
+                        {"dimension_fields_available", Int64.Type},
+                        {"identifier_candidates_available", Int64.Type},
+                        {"demand_series_candidates", Int64.Type},
+                        {"demand_signal_relationships", Int64.Type},
+                        {"has_numeric_analysis", type logical},
+                        {"has_temporal_analysis", type logical},
+                        {"has_dimension_analysis", type logical},
+                        {"has_relationship_evidence", type logical},
+                        {"has_demand_candidate_evidence", type logical},
+                        {"has_demand_signal_evidence", type logical}
+                    }
+                )
+            in
+                TypedColumns

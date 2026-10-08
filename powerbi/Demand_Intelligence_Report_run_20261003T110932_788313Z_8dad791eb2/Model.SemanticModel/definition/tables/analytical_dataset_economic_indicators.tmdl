@@ -1,0 +1,142 @@
+table 'analytical_dataset_economic_indicators'
+    column 'date'
+        dataType: string
+        sourceColumn: "date"
+        summarizeBy: none
+
+    column 'gdp_growth_pct'
+        dataType: double
+        sourceColumn: "gdp_growth_pct"
+        summarizeBy: sum
+
+    column 'inflation_pct'
+        dataType: double
+        sourceColumn: "inflation_pct"
+        summarizeBy: sum
+
+    column 'interest_rate_pct'
+        dataType: double
+        sourceColumn: "interest_rate_pct"
+        summarizeBy: sum
+
+    column 'manufacturing_index'
+        dataType: double
+        sourceColumn: "manufacturing_index"
+        summarizeBy: sum
+
+    column 'industrial_production_growth_pct'
+        dataType: double
+        sourceColumn: "industrial_production_growth_pct"
+        summarizeBy: sum
+
+    column 'date_year'
+        dataType: int64
+        sourceColumn: "date__year"
+        summarizeBy: sum
+
+    column 'date_month'
+        dataType: int64
+        sourceColumn: "date__month"
+        summarizeBy: sum
+
+    column 'date_quarter'
+        dataType: int64
+        sourceColumn: "date__quarter"
+        summarizeBy: sum
+
+    column 'date_week'
+        dataType: int64
+        sourceColumn: "date__week"
+        summarizeBy: sum
+
+    column 'date_day_of_week'
+        dataType: int64
+        sourceColumn: "date__day_of_week"
+        summarizeBy: sum
+
+    column 'date_day_of_month'
+        dataType: int64
+        sourceColumn: "date__day_of_month"
+        summarizeBy: sum
+
+    column 'date_day_of_year'
+        dataType: int64
+        sourceColumn: "date__day_of_year"
+        summarizeBy: sum
+
+    column 'date_is_month_start'
+        dataType: boolean
+        sourceColumn: "date__is_month_start"
+        summarizeBy: none
+
+    column 'date_is_month_end'
+        dataType: boolean
+        sourceColumn: "date__is_month_end"
+        summarizeBy: none
+
+    column 'date_is_quarter_start'
+        dataType: boolean
+        sourceColumn: "date__is_quarter_start"
+        summarizeBy: none
+
+    column 'date_is_quarter_end'
+        dataType: boolean
+        sourceColumn: "date__is_quarter_end"
+        summarizeBy: none
+
+    column 'numeric_non_null_count'
+        dataType: int64
+        sourceColumn: "__numeric_non_null_count"
+        summarizeBy: sum
+
+    column 'missing_value_count'
+        dataType: int64
+        sourceColumn: "__missing_value_count"
+        summarizeBy: sum
+
+    column 'non_missing_value_count'
+        dataType: int64
+        sourceColumn: "__non_missing_value_count"
+        summarizeBy: sum
+
+    column 'missing_value_ratio'
+        dataType: int64
+        sourceColumn: "__missing_value_ratio"
+        summarizeBy: sum
+
+    partition 'analytical_dataset_economic_indicators_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analytical_dataset.xlsx"), null, true),
+                SheetData = Source{[Item="economic_indicators",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"date", type text},
+                        {"gdp_growth_pct", type number},
+                        {"inflation_pct", type number},
+                        {"interest_rate_pct", type number},
+                        {"manufacturing_index", type number},
+                        {"industrial_production_growth_pct", type number},
+                        {"date__year", Int64.Type},
+                        {"date__month", Int64.Type},
+                        {"date__quarter", Int64.Type},
+                        {"date__week", Int64.Type},
+                        {"date__day_of_week", Int64.Type},
+                        {"date__day_of_month", Int64.Type},
+                        {"date__day_of_year", Int64.Type},
+                        {"date__is_month_start", type logical},
+                        {"date__is_month_end", type logical},
+                        {"date__is_quarter_start", type logical},
+                        {"date__is_quarter_end", type logical},
+                        {"__numeric_non_null_count", Int64.Type},
+                        {"__missing_value_count", Int64.Type},
+                        {"__non_missing_value_count", Int64.Type},
+                        {"__missing_value_ratio", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns

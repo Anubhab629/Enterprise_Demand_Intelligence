@@ -1,0 +1,87 @@
+table 'analysis_results_Schema_Evidence'
+    column 'table'
+        dataType: string
+        sourceColumn: "table"
+        summarizeBy: none
+
+    column 'column'
+        dataType: string
+        sourceColumn: "column"
+        summarizeBy: none
+
+    column 'structural_type'
+        dataType: string
+        sourceColumn: "structural_type"
+        summarizeBy: none
+
+    column 'row_count'
+        dataType: int64
+        sourceColumn: "row_count"
+        summarizeBy: sum
+
+    column 'non_null_count'
+        dataType: int64
+        sourceColumn: "non_null_count"
+        summarizeBy: sum
+
+    column 'missing_count'
+        dataType: int64
+        sourceColumn: "missing_count"
+        summarizeBy: sum
+
+    column 'missing_ratio'
+        dataType: int64
+        sourceColumn: "missing_ratio"
+        summarizeBy: sum
+
+    column 'unique_count'
+        dataType: int64
+        sourceColumn: "unique_count"
+        summarizeBy: sum
+
+    column 'uniqueness_ratio'
+        dataType: double
+        sourceColumn: "uniqueness_ratio"
+        summarizeBy: sum
+
+    column 'identifier_candidate'
+        dataType: boolean
+        sourceColumn: "identifier_candidate"
+        summarizeBy: none
+
+    column 'identifier_sequential_ratio'
+        dataType: double
+        sourceColumn: "identifier_sequential_ratio"
+        summarizeBy: sum
+
+    partition 'analysis_results_Schema_Evidence_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analysis_results.xlsx"), null, true),
+                SheetData = Source{[Item="Schema_Evidence",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"table", type text},
+                        {"column", type text},
+                        {"structural_type", type text},
+                        {"row_count", Int64.Type},
+                        {"non_null_count", Int64.Type},
+                        {"missing_count", Int64.Type},
+                        {"missing_ratio", Int64.Type},
+                        {"unique_count", Int64.Type},
+                        {"uniqueness_ratio", type number},
+                        {"identifier_candidate", type logical},
+                        {"identifier_sequential_ratio", type number}
+                    }
+                )
+            in
+                TypedColumns
+    measure 'Analyzed Columns' = COUNTROWS('analysis_results_Schema_Evidence')
+        formatString: #,##0
+    measure 'Average Missing Rate' = AVERAGE('analysis_results_Schema_Evidence'[missing_ratio])
+        formatString: 0.00%
+

@@ -1,0 +1,350 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "8160a91b58f54e47b460",
+  "position": {
+    "x": 24,
+    "y": 495,
+    "z": 2100,
+    "height": 205,
+    "width": 1208,
+    "tabOrder": 2100
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "table"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.table",
+              "nativeQueryRef": "table",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "row_count"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.row_count",
+              "nativeQueryRef": "row_count",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "column_count"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.column_count",
+              "nativeQueryRef": "column_count",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "numeric_fields_available"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.numeric_fields_available",
+              "nativeQueryRef": "numeric_fields_available",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "temporal_fields_available"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.temporal_fields_available",
+              "nativeQueryRef": "temporal_fields_available",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "dimension_fields_available"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.dimension_fields_available",
+              "nativeQueryRef": "dimension_fields_available",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "identifier_candidates_available"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.identifier_candidates_available",
+              "nativeQueryRef": "identifier_candidates_available",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "demand_series_candidates"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.demand_series_candidates",
+              "nativeQueryRef": "demand_series_candidates",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "demand_signal_relationships"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.demand_signal_relationships",
+              "nativeQueryRef": "demand_signal_relationships",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "has_numeric_analysis"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.has_numeric_analysis",
+              "nativeQueryRef": "has_numeric_analysis",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "has_temporal_analysis"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.has_temporal_analysis",
+              "nativeQueryRef": "has_temporal_analysis",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "has_dimension_analysis"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.has_dimension_analysis",
+              "nativeQueryRef": "has_dimension_analysis",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "has_relationship_evidence"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.has_relationship_evidence",
+              "nativeQueryRef": "has_relationship_evidence",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "has_demand_candidate_evidence"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.has_demand_candidate_evidence",
+              "nativeQueryRef": "has_demand_candidate_evidence",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analysis_results_Analytical_Readiness"
+                    }
+                  },
+                  "Property": "has_demand_signal_evidence"
+                }
+              },
+              "queryRef": "analysis_results_Analytical_Readiness.has_demand_signal_evidence",
+              "nativeQueryRef": "has_demand_signal_evidence",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Readiness Structure Matrix'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

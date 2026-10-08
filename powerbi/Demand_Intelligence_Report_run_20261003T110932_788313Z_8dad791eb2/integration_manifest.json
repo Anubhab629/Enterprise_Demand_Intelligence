@@ -1,0 +1,3976 @@
+{
+  "status": "GENERATED_STRUCTURAL_AND_SEMANTIC_VALIDATION",
+  "run_id": "run_20261003T110932_788313Z_8dad791eb2",
+  "workspace": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi",
+  "project": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2",
+  "pbip": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2.pbip",
+  "data_directory": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2",
+  "documentation_directory": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\documentation\\run_20261003T110932_788313Z_8dad791eb2",
+  "source_files": [
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\data\\output\\runs\\run_20261003T110932_788313Z_8dad791eb2\\output\\analytical_dataset.xlsx",
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\data\\output\\runs\\run_20261003T110932_788313Z_8dad791eb2\\output\\analysis_results.xlsx",
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\data\\output\\runs\\run_20261003T110932_788313Z_8dad791eb2\\output\\forecast_results.xlsx",
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\data\\output\\runs\\run_20261003T110932_788313Z_8dad791eb2\\output\\recommendation_results.xlsx"
+  ],
+  "staged_data_files": [
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\forecast_results.xlsx",
+    "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\recommendation_results.xlsx"
+  ],
+  "semantic_model": {
+    "semantic_name": "Model.SemanticModel",
+    "report_name": "Report.Report",
+    "semantic_definition": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition",
+    "table_count": 30,
+    "relationship_count": 0,
+    "relationship_candidates": 421,
+    "relationship_policy": "CANDIDATE_UNIQUENESS_COVERAGE_CARDINALITY_DIRECTION_AMBIGUITY_REQUIRED_BEFORE_MATERIALIZATION",
+    "security": {
+      "status": "BOUNDARY_DISCOVERED_MAPPING_REQUIRED",
+      "table": "analysis_results_Analytical_Readiness",
+      "column": "table",
+      "related_table_count": 13,
+      "operational_identity_mapping_established": false,
+      "operational_rls": false,
+      "access_default": "deny"
+    },
+    "registry": [
+      {
+        "table_name": "analytical_dataset_companies",
+        "tmdl_filename": "analytical_dataset_companies.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "companies",
+        "row_count": 10,
+        "columns": [
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "company_name",
+            "safe_name": "company_name",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "industry",
+            "safe_name": "industry",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "city",
+            "safe_name": "city",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "state",
+            "safe_name": "state",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "primary_market",
+            "safe_name": "primary_market",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_economic_indicators",
+        "tmdl_filename": "analytical_dataset_economic_indicators.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "economic_indicators",
+        "row_count": 1096,
+        "columns": [
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "gdp_growth_pct",
+            "safe_name": "gdp_growth_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "inflation_pct",
+            "safe_name": "inflation_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "interest_rate_pct",
+            "safe_name": "interest_rate_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "manufacturing_index",
+            "safe_name": "manufacturing_index",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "industrial_production_growth_pct",
+            "safe_name": "industrial_production_growth_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_commodity_prices",
+        "tmdl_filename": "analytical_dataset_commodity_prices.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "commodity_prices",
+        "row_count": 1096,
+        "columns": [
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "steel_price_inr_tonne",
+            "safe_name": "steel_price_inr_tonne",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "copper_price_inr_kg",
+            "safe_name": "copper_price_inr_kg",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "aluminium_price_inr_kg",
+            "safe_name": "aluminium_price_inr_kg",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "oil_price_usd_barrel",
+            "safe_name": "oil_price_usd_barrel",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "coal_price_usd_tonne",
+            "safe_name": "coal_price_usd_tonne",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "natural_gas_price_usd_mmbtu",
+            "safe_name": "natural_gas_price_usd_mmbtu",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_weather",
+        "tmdl_filename": "analytical_dataset_weather.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "weather",
+        "row_count": 10960,
+        "columns": [
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "temperature_c",
+            "safe_name": "temperature_c",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "humidity_pct",
+            "safe_name": "humidity_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "rainfall_mm",
+            "safe_name": "rainfall_mm",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "cyclone_flag",
+            "safe_name": "cyclone_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "snowfall_flag",
+            "safe_name": "snowfall_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "heatwave_flag",
+            "safe_name": "heatwave_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_market_trends",
+        "tmdl_filename": "analytical_dataset_market_trends.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "market_trends",
+        "row_count": 32880,
+        "columns": [
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "product",
+            "safe_name": "product",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "search_interest_index",
+            "safe_name": "search_interest_index",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "search_growth_pct",
+            "safe_name": "search_growth_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_competitor_activity",
+        "tmdl_filename": "analytical_dataset_competitor_activity.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "competitor_activity",
+        "row_count": 10960,
+        "columns": [
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "competitor_activity",
+            "safe_name": "competitor_activity",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "activity_intensity",
+            "safe_name": "activity_intensity",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "competitor_discount_pct",
+            "safe_name": "competitor_discount_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "promotion_strength_pct",
+            "safe_name": "promotion_strength_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "new_product_flag",
+            "safe_name": "new_product_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "factory_expansion_flag",
+            "safe_name": "factory_expansion_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "competitor_count_active",
+            "safe_name": "competitor_count_active",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_sales",
+        "tmdl_filename": "analytical_dataset_sales.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "sales",
+        "row_count": 32880,
+        "columns": [
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "product",
+            "safe_name": "product",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "units_sold",
+            "safe_name": "units_sold",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "unit_price_inr",
+            "safe_name": "unit_price_inr",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "sales_value_inr",
+            "safe_name": "sales_value_inr",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "returns_units",
+            "safe_name": "returns_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "service_level_pct",
+            "safe_name": "service_level_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_production",
+        "tmdl_filename": "analytical_dataset_production.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "production",
+        "row_count": 32880,
+        "columns": [
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "product",
+            "safe_name": "product",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "planned_production_units",
+            "safe_name": "planned_production_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "actual_production_units",
+            "safe_name": "actual_production_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "excess_units",
+            "safe_name": "excess_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "shortage_units",
+            "safe_name": "shortage_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "production_efficiency_pct",
+            "safe_name": "production_efficiency_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_customer_orders",
+        "tmdl_filename": "analytical_dataset_customer_orders.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "customer_orders",
+        "row_count": 65760,
+        "columns": [
+          {
+            "source_name": "order_id",
+            "safe_name": "order_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "order_date",
+            "safe_name": "order_date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "expected_delivery_date",
+            "safe_name": "expected_delivery_date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "product",
+            "safe_name": "product",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "customer_id",
+            "safe_name": "customer_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "order_units",
+            "safe_name": "order_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_status",
+            "safe_name": "order_status",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "order_value_inr",
+            "safe_name": "order_value_inr",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_priority",
+            "safe_name": "order_priority",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "payment_delay_days",
+            "safe_name": "payment_delay_days",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__year",
+            "safe_name": "order_date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__month",
+            "safe_name": "order_date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__quarter",
+            "safe_name": "order_date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__week",
+            "safe_name": "order_date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__day_of_week",
+            "safe_name": "order_date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__day_of_month",
+            "safe_name": "order_date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__day_of_year",
+            "safe_name": "order_date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "order_date__is_month_start",
+            "safe_name": "order_date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "order_date__is_month_end",
+            "safe_name": "order_date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "order_date__is_quarter_start",
+            "safe_name": "order_date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "order_date__is_quarter_end",
+            "safe_name": "order_date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "expected_delivery_date__year",
+            "safe_name": "expected_delivery_date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "expected_delivery_date__month",
+            "safe_name": "expected_delivery_date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "expected_delivery_date__quarter",
+            "safe_name": "expected_delivery_date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "expected_delivery_date__week",
+            "safe_name": "expected_delivery_date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "expected_delivery_date__day_of_week",
+            "safe_name": "expected_delivery_date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "expected_delivery_date__day_of_month",
+            "safe_name": "expected_delivery_date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "expected_delivery_date__day_of_year",
+            "safe_name": "expected_delivery_date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "expected_delivery_date__is_month_start",
+            "safe_name": "expected_delivery_date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "expected_delivery_date__is_month_end",
+            "safe_name": "expected_delivery_date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "expected_delivery_date__is_quarter_start",
+            "safe_name": "expected_delivery_date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "expected_delivery_date__is_quarter_end",
+            "safe_name": "expected_delivery_date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analytical_dataset_demand_sensing_daily",
+        "tmdl_filename": "analytical_dataset_demand_sensing_daily.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analytical_dataset.xlsx",
+        "sheet_name": "demand_sensing_daily",
+        "row_count": 10960,
+        "columns": [
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "date",
+            "safe_name": "date",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "units_sold",
+            "safe_name": "units_sold",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "sales_value_inr",
+            "safe_name": "sales_value_inr",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "returns_units",
+            "safe_name": "returns_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "avg_service_level_pct",
+            "safe_name": "avg_service_level_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "planned_production_units",
+            "safe_name": "planned_production_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "actual_production_units",
+            "safe_name": "actual_production_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "shortage_units",
+            "safe_name": "shortage_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "production_efficiency_pct",
+            "safe_name": "production_efficiency_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "temperature_c",
+            "safe_name": "temperature_c",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "humidity_pct",
+            "safe_name": "humidity_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "rainfall_mm",
+            "safe_name": "rainfall_mm",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "cyclone_flag",
+            "safe_name": "cyclone_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "snowfall_flag",
+            "safe_name": "snowfall_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "heatwave_flag",
+            "safe_name": "heatwave_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "competitor_activity",
+            "safe_name": "competitor_activity",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "activity_intensity",
+            "safe_name": "activity_intensity",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "competitor_discount_pct",
+            "safe_name": "competitor_discount_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "promotion_strength_pct",
+            "safe_name": "promotion_strength_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "new_product_flag",
+            "safe_name": "new_product_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "factory_expansion_flag",
+            "safe_name": "factory_expansion_flag",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "competitor_count_active",
+            "safe_name": "competitor_count_active",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "gdp_growth_pct",
+            "safe_name": "gdp_growth_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "inflation_pct",
+            "safe_name": "inflation_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "interest_rate_pct",
+            "safe_name": "interest_rate_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "manufacturing_index",
+            "safe_name": "manufacturing_index",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "industrial_production_growth_pct",
+            "safe_name": "industrial_production_growth_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "steel_price_inr_tonne",
+            "safe_name": "steel_price_inr_tonne",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "copper_price_inr_kg",
+            "safe_name": "copper_price_inr_kg",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "aluminium_price_inr_kg",
+            "safe_name": "aluminium_price_inr_kg",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "oil_price_usd_barrel",
+            "safe_name": "oil_price_usd_barrel",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "coal_price_usd_tonne",
+            "safe_name": "coal_price_usd_tonne",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "natural_gas_price_usd_mmbtu",
+            "safe_name": "natural_gas_price_usd_mmbtu",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "avg_search_interest_index",
+            "safe_name": "avg_search_interest_index",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "avg_search_growth_pct",
+            "safe_name": "avg_search_growth_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "inventory_change_units",
+            "safe_name": "inventory_change_units",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "demand_signal_score",
+            "safe_name": "demand_signal_score",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "next_day_demand_target",
+            "safe_name": "next_day_demand_target",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "demand_change_pct",
+            "safe_name": "demand_change_pct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "date__year",
+            "safe_name": "date_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__month",
+            "safe_name": "date_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__quarter",
+            "safe_name": "date_quarter",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__week",
+            "safe_name": "date_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_week",
+            "safe_name": "date_day_of_week",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_month",
+            "safe_name": "date_day_of_month",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__day_of_year",
+            "safe_name": "date_day_of_year",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "date__is_month_start",
+            "safe_name": "date_is_month_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_month_end",
+            "safe_name": "date_is_month_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_start",
+            "safe_name": "date_is_quarter_start",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "date__is_quarter_end",
+            "safe_name": "date_is_quarter_end",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "__numeric_non_null_count",
+            "safe_name": "numeric_non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_count",
+            "safe_name": "missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__non_missing_value_count",
+            "safe_name": "non_missing_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "__missing_value_ratio",
+            "safe_name": "missing_value_ratio",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Table_Overview",
+        "tmdl_filename": "analysis_results_Table_Overview.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Table_Overview",
+        "row_count": 10,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "row_count",
+            "safe_name": "row_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "column_count",
+            "safe_name": "column_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "numeric_column_count",
+            "safe_name": "numeric_column_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "temporal_column_count",
+            "safe_name": "temporal_column_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "categorical_column_count",
+            "safe_name": "categorical_column_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "duplicate_row_count",
+            "safe_name": "duplicate_row_count",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Schema_Evidence",
+        "tmdl_filename": "analysis_results_Schema_Evidence.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Schema_Evidence",
+        "row_count": 257,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "column",
+            "safe_name": "column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "structural_type",
+            "safe_name": "structural_type",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "row_count",
+            "safe_name": "row_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "non_null_count",
+            "safe_name": "non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "missing_count",
+            "safe_name": "missing_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "missing_ratio",
+            "safe_name": "missing_ratio",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "unique_count",
+            "safe_name": "unique_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "uniqueness_ratio",
+            "safe_name": "uniqueness_ratio",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "identifier_candidate",
+            "safe_name": "identifier_candidate",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "identifier_sequential_ratio",
+            "safe_name": "identifier_sequential_ratio",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Numeric_Statistics",
+        "tmdl_filename": "analysis_results_Numeric_Statistics.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Numeric_Statistics",
+        "row_count": 185,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "column",
+            "safe_name": "column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "count",
+            "safe_name": "count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "sum",
+            "safe_name": "sum",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "mean",
+            "safe_name": "mean",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "median",
+            "safe_name": "median",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "std",
+            "safe_name": "std",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "min",
+            "safe_name": "min",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "q25",
+            "safe_name": "q25",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "q75",
+            "safe_name": "q75",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "max",
+            "safe_name": "max",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "zero_count",
+            "safe_name": "zero_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "negative_count",
+            "safe_name": "negative_count",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Categorical_Statistics",
+        "tmdl_filename": "analysis_results_Categorical_Statistics.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Categorical_Statistics",
+        "row_count": 61,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "column",
+            "safe_name": "column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "structural_type",
+            "safe_name": "structural_type",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "non_null_count",
+            "safe_name": "non_null_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "unique_count",
+            "safe_name": "unique_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "top_value",
+            "safe_name": "top_value",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "top_value_count",
+            "safe_name": "top_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "top_value_ratio",
+            "safe_name": "top_value_ratio",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Temporal_Statistics",
+        "tmdl_filename": "analysis_results_Temporal_Statistics.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Temporal_Statistics",
+        "row_count": 10,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "column",
+            "safe_name": "column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "valid_count",
+            "safe_name": "valid_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "missing_count",
+            "safe_name": "missing_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "minimum",
+            "safe_name": "minimum",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "maximum",
+            "safe_name": "maximum",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "distinct_periods",
+            "safe_name": "distinct_periods",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Dimension_Measure_Aggregations",
+        "tmdl_filename": "analysis_results_Dimension_Measure_Aggregations.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Dimension_Measure_Aggregations",
+        "row_count": 5961,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "dimension_column",
+            "safe_name": "dimension_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "dimension_value",
+            "safe_name": "dimension_value",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "measure_column",
+            "safe_name": "measure_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "row_count",
+            "safe_name": "row_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "sum",
+            "safe_name": "sum",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "mean",
+            "safe_name": "mean",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "minimum",
+            "safe_name": "minimum",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "maximum",
+            "safe_name": "maximum",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Temporal_Measure_Aggregations",
+        "tmdl_filename": "analysis_results_Temporal_Measure_Aggregations.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Temporal_Measure_Aggregations",
+        "row_count": 188752,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "temporal_column",
+            "safe_name": "temporal_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "period",
+            "safe_name": "period",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "period_frequency",
+            "safe_name": "period_frequency",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "measure_column",
+            "safe_name": "measure_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "row_count",
+            "safe_name": "row_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "sum",
+            "safe_name": "sum",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "mean",
+            "safe_name": "mean",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "minimum",
+            "safe_name": "minimum",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "maximum",
+            "safe_name": "maximum",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Numeric_Correlations",
+        "tmdl_filename": "analysis_results_Numeric_Correlations.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Numeric_Correlations",
+        "row_count": 1512,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "column_a",
+            "safe_name": "column_a",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "column_b",
+            "safe_name": "column_b",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "pearson_correlation",
+            "safe_name": "pearson_correlation",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Temporal_Changes",
+        "tmdl_filename": "analysis_results_Temporal_Changes.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Temporal_Changes",
+        "row_count": 199736,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "temporal_column",
+            "safe_name": "temporal_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "measure_column",
+            "safe_name": "measure_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "period",
+            "safe_name": "period",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "value",
+            "safe_name": "value",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "absolute_change",
+            "safe_name": "absolute_change",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Relationship_Evidence",
+        "tmdl_filename": "analysis_results_Relationship_Evidence.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Relationship_Evidence",
+        "row_count": 7,
+        "columns": [
+          {
+            "source_name": "left_table",
+            "safe_name": "left_table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "left_column",
+            "safe_name": "left_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "right_table",
+            "safe_name": "right_table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "right_column",
+            "safe_name": "right_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "sample_overlap_count",
+            "safe_name": "sample_overlap_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "left_sample_unique_count",
+            "safe_name": "left_sample_unique_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "right_sample_unique_count",
+            "safe_name": "right_sample_unique_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "overlap_ratio_left",
+            "safe_name": "overlap_ratio_left",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "overlap_ratio_right",
+            "safe_name": "overlap_ratio_right",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "identifier_side",
+            "safe_name": "identifier_side",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "evidence_strength",
+            "safe_name": "evidence_strength",
+            "powerbi_type": "string"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Demand_Candidate_Evidence",
+        "tmdl_filename": "analysis_results_Demand_Candidate_Evidence.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Demand_Candidate_Evidence",
+        "row_count": 48,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "time_column",
+            "safe_name": "time_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "measure_column",
+            "safe_name": "measure_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "observation_count",
+            "safe_name": "observation_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "distinct_time_periods",
+            "safe_name": "distinct_time_periods",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "temporal_coverage",
+            "safe_name": "temporal_coverage",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "unique_value_count",
+            "safe_name": "unique_value_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "value_std",
+            "safe_name": "value_std",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "candidate_score",
+            "safe_name": "candidate_score",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "evidence_type",
+            "safe_name": "evidence_type",
+            "powerbi_type": "string"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Demand_Signal_Evidence",
+        "tmdl_filename": "analysis_results_Demand_Signal_Evidence.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Demand_Signal_Evidence",
+        "row_count": 213,
+        "columns": [
+          {
+            "source_name": "target_table",
+            "safe_name": "target_table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "target_time_column",
+            "safe_name": "target_time_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "target_measure_column",
+            "safe_name": "target_measure_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "signal_table",
+            "safe_name": "signal_table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "signal_time_column",
+            "safe_name": "signal_time_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "signal_measure_column",
+            "safe_name": "signal_measure_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "lag_periods",
+            "safe_name": "lag_periods",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "aligned_observations",
+            "safe_name": "aligned_observations",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "level_correlation",
+            "safe_name": "level_correlation",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "change_correlation",
+            "safe_name": "change_correlation",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "directional_agreement",
+            "safe_name": "directional_agreement",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "direction",
+            "safe_name": "direction",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "relationship_strength",
+            "safe_name": "relationship_strength",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "analysis_results_Analytical_Readiness",
+        "tmdl_filename": "analysis_results_Analytical_Readiness.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\analysis_results.xlsx",
+        "sheet_name": "Analytical_Readiness",
+        "row_count": 10,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "row_count",
+            "safe_name": "row_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "column_count",
+            "safe_name": "column_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "numeric_fields_available",
+            "safe_name": "numeric_fields_available",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "temporal_fields_available",
+            "safe_name": "temporal_fields_available",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "dimension_fields_available",
+            "safe_name": "dimension_fields_available",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "identifier_candidates_available",
+            "safe_name": "identifier_candidates_available",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "demand_series_candidates",
+            "safe_name": "demand_series_candidates",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "demand_signal_relationships",
+            "safe_name": "demand_signal_relationships",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "has_numeric_analysis",
+            "safe_name": "has_numeric_analysis",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "has_temporal_analysis",
+            "safe_name": "has_temporal_analysis",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "has_dimension_analysis",
+            "safe_name": "has_dimension_analysis",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "has_relationship_evidence",
+            "safe_name": "has_relationship_evidence",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "has_demand_candidate_evidence",
+            "safe_name": "has_demand_candidate_evidence",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "has_demand_signal_evidence",
+            "safe_name": "has_demand_signal_evidence",
+            "powerbi_type": "boolean"
+          }
+        ]
+      },
+      {
+        "table_name": "forecast_results_Forecast_Summary",
+        "tmdl_filename": "forecast_results_Forecast_Summary.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\forecast_results.xlsx",
+        "sheet_name": "Forecast_Summary",
+        "row_count": 9,
+        "columns": [
+          {
+            "source_name": "Metric",
+            "safe_name": "Metric",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "Value",
+            "safe_name": "Value",
+            "powerbi_type": "double"
+          }
+        ]
+      },
+      {
+        "table_name": "forecast_results_Forecasts",
+        "tmdl_filename": "forecast_results_Forecasts.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\forecast_results.xlsx",
+        "sheet_name": "Forecasts",
+        "row_count": 1126,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "time_column",
+            "safe_name": "time_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "value_column",
+            "safe_name": "value_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "ForecastStart",
+            "safe_name": "ForecastStart",
+            "powerbi_type": "dateTime"
+          },
+          {
+            "source_name": "ForecastEnd",
+            "safe_name": "ForecastEnd",
+            "powerbi_type": "dateTime"
+          },
+          {
+            "source_name": "HistoryPoints",
+            "safe_name": "HistoryPoints",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "RecentAverage",
+            "safe_name": "RecentAverage",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "BaselineAverage",
+            "safe_name": "BaselineAverage",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "ForecastAverage",
+            "safe_name": "ForecastAverage",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "ForecastTotal",
+            "safe_name": "ForecastTotal",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "LowerForecastTotal",
+            "safe_name": "LowerForecastTotal",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "UpperForecastTotal",
+            "safe_name": "UpperForecastTotal",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "Volatility",
+            "safe_name": "Volatility",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "CoefficientOfVariation",
+            "safe_name": "CoefficientOfVariation",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "RecentVsBaselineChangePct",
+            "safe_name": "RecentVsBaselineChangePct",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "ForecastConfidence",
+            "safe_name": "ForecastConfidence",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "FrequencyEvidence",
+            "safe_name": "FrequencyEvidence",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "ForecastPoints",
+            "safe_name": "ForecastPoints",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "ForecastHorizonDays",
+            "safe_name": "ForecastHorizonDays",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "candidate_score",
+            "safe_name": "candidate_score",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "company_id",
+            "safe_name": "company_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "product",
+            "safe_name": "product",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "competitor_activity",
+            "safe_name": "competitor_activity",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "customer_id",
+            "safe_name": "customer_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "order_status",
+            "safe_name": "order_status",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "DemandTrend",
+            "safe_name": "DemandTrend",
+            "powerbi_type": "string"
+          }
+        ]
+      },
+      {
+        "table_name": "forecast_results_Forecast_Evidence",
+        "tmdl_filename": "forecast_results_Forecast_Evidence.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\forecast_results.xlsx",
+        "sheet_name": "Forecast_Evidence",
+        "row_count": 60,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "time_column",
+            "safe_name": "time_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "value_column",
+            "safe_name": "value_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "candidate_score",
+            "safe_name": "candidate_score",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "dimensions_considered",
+            "safe_name": "dimensions_considered",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "forecast_series_produced",
+            "safe_name": "forecast_series_produced",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "status",
+            "safe_name": "status",
+            "powerbi_type": "string"
+          }
+        ]
+      },
+      {
+        "table_name": "forecast_results_Temporal_Evidence",
+        "tmdl_filename": "forecast_results_Temporal_Evidence.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\forecast_results.xlsx",
+        "sheet_name": "Temporal_Evidence",
+        "row_count": 10,
+        "columns": [
+          {
+            "source_name": "table",
+            "safe_name": "table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "column",
+            "safe_name": "column",
+            "powerbi_type": "string"
+          }
+        ]
+      },
+      {
+        "table_name": "recommendation_results_Summary",
+        "tmdl_filename": "recommendation_results_Summary.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\recommendation_results.xlsx",
+        "sheet_name": "Summary",
+        "row_count": 7,
+        "columns": [
+          {
+            "source_name": "metric",
+            "safe_name": "metric",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "value",
+            "safe_name": "value",
+            "powerbi_type": "int64"
+          }
+        ]
+      },
+      {
+        "table_name": "recommendation_results_Recommendations",
+        "tmdl_filename": "recommendation_results_Recommendations.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\recommendation_results.xlsx",
+        "sheet_name": "Recommendations",
+        "row_count": 100,
+        "columns": [
+          {
+            "source_name": "recommendation_id",
+            "safe_name": "recommendation_id",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "recommendation_type",
+            "safe_name": "recommendation_type",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "source_table",
+            "safe_name": "source_table",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "source_column",
+            "safe_name": "source_column",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "entity",
+            "safe_name": "entity",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "scope",
+            "safe_name": "scope",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "finding",
+            "safe_name": "finding",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "recommendation",
+            "safe_name": "recommendation",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "recommendation_rationale",
+            "safe_name": "recommendation_rationale",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "expected_impact",
+            "safe_name": "expected_impact",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "risk",
+            "safe_name": "risk",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "evidence",
+            "safe_name": "evidence",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "priority_score",
+            "safe_name": "priority_score",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "priority_level",
+            "safe_name": "priority_level",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "supporting_signal_count",
+            "safe_name": "supporting_signal_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "forecast_available",
+            "safe_name": "forecast_available",
+            "powerbi_type": "boolean"
+          },
+          {
+            "source_name": "recommendation_generation_status",
+            "safe_name": "recommendation_generation_status",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "entity_attribute",
+            "safe_name": "entity_attribute",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "entity_value",
+            "safe_name": "entity_value",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "entity_context",
+            "safe_name": "entity_context",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "evidence_summary",
+            "safe_name": "evidence_summary",
+            "powerbi_type": "string"
+          }
+        ]
+      },
+      {
+        "table_name": "recommendation_results_Evidence_Summary",
+        "tmdl_filename": "recommendation_results_Evidence_Summary.tmdl",
+        "source_file": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\data\\run_20261003T110932_788313Z_8dad791eb2\\recommendation_results.xlsx",
+        "sheet_name": "Evidence_Summary",
+        "row_count": 1,
+        "columns": [
+          {
+            "source_name": "recommendation_type",
+            "safe_name": "recommendation_type",
+            "powerbi_type": "string"
+          },
+          {
+            "source_name": "recommendation_count",
+            "safe_name": "recommendation_count",
+            "powerbi_type": "int64"
+          },
+          {
+            "source_name": "average_priority_score",
+            "safe_name": "average_priority_score",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "average_signal_count",
+            "safe_name": "average_signal_count",
+            "powerbi_type": "double"
+          },
+          {
+            "source_name": "generated_recommendation_count",
+            "safe_name": "generated_recommendation_count",
+            "powerbi_type": "int64"
+          }
+        ]
+      }
+    ]
+  },
+  "report": {
+    "pages": 8,
+    "visuals": 62,
+    "page_contracts": [
+      {
+        "name": "Executive Intelligence",
+        "question": "What is the overall intelligence picture from this run?"
+      },
+      {
+        "name": "Data Landscape",
+        "question": "What data and analytical capabilities were discovered?"
+      },
+      {
+        "name": "Demand Intelligence",
+        "question": "What demand patterns and signal relationships were discovered?"
+      },
+      {
+        "name": "Forecast Outlook",
+        "question": "What does the forecast indicate about future demand?"
+      },
+      {
+        "name": "Recommendations & Actions",
+        "question": "What evidence-backed findings/actions were produced?"
+      },
+      {
+        "name": "Signal Intelligence",
+        "question": "What market/supporting signals show evidence of relationship with demand?"
+      },
+      {
+        "name": "Data Quality & Readiness",
+        "question": "Is the analytical foundation usable and ready?"
+      },
+      {
+        "name": "Record Explorer",
+        "question": "Row-level investigation for the current run."
+      }
+    ],
+    "signal_page_supported": true,
+    "primary_table": "analytical_dataset_customer_orders",
+    "measures": [
+      "Source Records",
+      "Discovered Structures",
+      "Demand Candidates",
+      "Signal Relationships",
+      "Forecast Series",
+      "Recommendations"
+    ],
+    "report_design": "capability-driven-8-page-decision-support",
+    "source_document_alignment": {
+      "questions": [
+        {
+          "question": "What is Demand Sensing?",
+          "report_mapping": "Report architecture combines historical evidence with current signal evidence and forecasting.",
+          "status": "conceptual_alignment"
+        },
+        {
+          "question": "What happened last year?",
+          "report_mapping": "Historical evidence is shown only when an explicit worker evidence contract publishes it; no unsupported historical answer is fabricated.",
+          "status": "evidence_gated"
+        },
+        {
+          "question": "What is happening today that will affect sales tomorrow?",
+          "report_mapping": "Demand Intelligence, Signal Intelligence, and Forecast Outlook connect current-run signal relationships to forecast evidence.",
+          "status": "evidence_gated"
+        },
+        {
+          "question": "What are Market Signals?",
+          "report_mapping": "Signal Intelligence displays only worker-produced signal/demand evidence; the six example categories in the source document are not assumed to exist in every dataset.",
+          "status": "evidence_gated"
+        }
+      ],
+      "signal_categories_from_source": [
+        "Economic Indicators",
+        "Commodity Prices",
+        "Weather",
+        "Web Search Trends",
+        "Competitor Activity",
+        "Customer Order Patterns"
+      ]
+    },
+    "definition": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Report.Report\\definition",
+    "visual_manifest": [
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "ced9637df38b462e9f1e",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "f7dc437f8043484db9e2",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "0f167b658e584797b568",
+        "kind": "cardVisual",
+        "position": {
+          "x": 24,
+          "y": 125,
+          "z": 1000,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 100
+        },
+        "title": "Source Rows",
+        "index": 2
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "97a80eb3938343ce81de",
+        "kind": "cardVisual",
+        "position": {
+          "x": 226,
+          "y": 125,
+          "z": 1001,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 101
+        },
+        "title": "Structures",
+        "index": 3
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "5cc2c57e50ca40288306",
+        "kind": "cardVisual",
+        "position": {
+          "x": 428,
+          "y": 125,
+          "z": 1002,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 102
+        },
+        "title": "Demand Candidates",
+        "index": 4
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "5a4ad00fe23e4360be61",
+        "kind": "cardVisual",
+        "position": {
+          "x": 630,
+          "y": 125,
+          "z": 1003,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 103
+        },
+        "title": "Signal Links",
+        "index": 5
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "da84f9b355834e368430",
+        "kind": "cardVisual",
+        "position": {
+          "x": 832,
+          "y": 125,
+          "z": 1004,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 104
+        },
+        "title": "Forecast Series",
+        "index": 6
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "478d4ebe84694660bbc2",
+        "kind": "cardVisual",
+        "position": {
+          "x": 1034,
+          "y": 125,
+          "z": 1005,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 105
+        },
+        "title": "Recommendations",
+        "index": 7
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "51f9472858f34d7bbf3f",
+        "kind": "columnChart",
+        "position": {
+          "x": 24,
+          "y": 225,
+          "z": 2000,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2000
+        },
+        "title": "Average Relationship Strength by Direction",
+        "index": 8
+      },
+      {
+        "page_id": "d77f152fe0f541f2a62a",
+        "page_name": "Executive Intelligence",
+        "visual_id": "9bfbaa6dd5f54bc49333",
+        "kind": "columnChart",
+        "position": {
+          "x": 642,
+          "y": 225,
+          "z": 2001,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2001
+        },
+        "title": "Forecast Trend Distribution",
+        "index": 9
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "fe1b3a2a97c24aa7b5d5",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "bffeb4ee65b44834a991",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "6a62ff6d54b04a5f835e",
+        "kind": "cardVisual",
+        "position": {
+          "x": 24,
+          "y": 125,
+          "z": 1000,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 100
+        },
+        "title": "Structures",
+        "index": 2
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "dd7cdbb36a81447d95c1",
+        "kind": "cardVisual",
+        "position": {
+          "x": 226,
+          "y": 125,
+          "z": 1001,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 101
+        },
+        "title": "Records",
+        "index": 3
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "004068780a074012bb8b",
+        "kind": "cardVisual",
+        "position": {
+          "x": 428,
+          "y": 125,
+          "z": 1002,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 102
+        },
+        "title": "Columns",
+        "index": 4
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "532e5ef88edb446d8eb3",
+        "kind": "cardVisual",
+        "position": {
+          "x": 630,
+          "y": 125,
+          "z": 1003,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 103
+        },
+        "title": "Numeric",
+        "index": 5
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "5b1b94fa9a6545569691",
+        "kind": "cardVisual",
+        "position": {
+          "x": 832,
+          "y": 125,
+          "z": 1004,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 104
+        },
+        "title": "Temporal",
+        "index": 6
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "38dc8be7310f4b4b85a6",
+        "kind": "cardVisual",
+        "position": {
+          "x": 1034,
+          "y": 125,
+          "z": 1005,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 105
+        },
+        "title": "Categorical",
+        "index": 7
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "0ffc3d25754649ed89f6",
+        "kind": "barChart",
+        "position": {
+          "x": 24,
+          "y": 225,
+          "z": 2000,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2000
+        },
+        "title": "Records by Discovered Structure",
+        "index": 8
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "47ae09172a814a19bff4",
+        "kind": "barChart",
+        "position": {
+          "x": 642,
+          "y": 225,
+          "z": 2001,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2001
+        },
+        "title": "Numeric Capability by Structure",
+        "index": 9
+      },
+      {
+        "page_id": "bfad6dee68434ab78f9f",
+        "page_name": "Data Landscape",
+        "visual_id": "7747d1e523d54c388b02",
+        "kind": "tableEx",
+        "position": {
+          "x": 24,
+          "y": 495,
+          "z": 2100,
+          "height": 205,
+          "width": 1208,
+          "tabOrder": 2100
+        },
+        "title": "Discovered Structure Matrix",
+        "index": 10
+      },
+      {
+        "page_id": "e0b277bb599041aa9b49",
+        "page_name": "Demand Intelligence",
+        "visual_id": "6979ae908f224c4e9abd",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "e0b277bb599041aa9b49",
+        "page_name": "Demand Intelligence",
+        "visual_id": "54e3f911f9c04e1bb2db",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "e0b277bb599041aa9b49",
+        "page_name": "Demand Intelligence",
+        "visual_id": "b9ff49ccf8a742cc8c6d",
+        "kind": "cardVisual",
+        "position": {
+          "x": 24,
+          "y": 125,
+          "z": 1000,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 100
+        },
+        "title": "Demand Candidates",
+        "index": 2
+      },
+      {
+        "page_id": "e0b277bb599041aa9b49",
+        "page_name": "Demand Intelligence",
+        "visual_id": "0adb33d2821a4252aab8",
+        "kind": "barChart",
+        "position": {
+          "x": 24,
+          "y": 225,
+          "z": 2000,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2000
+        },
+        "title": "Average Candidate Evidence Score",
+        "index": 3
+      },
+      {
+        "page_id": "e0b277bb599041aa9b49",
+        "page_name": "Demand Intelligence",
+        "visual_id": "5743ddab1c434d22b75b",
+        "kind": "columnChart",
+        "position": {
+          "x": 642,
+          "y": 225,
+          "z": 2001,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2001
+        },
+        "title": "Relationship Strength by Direction",
+        "index": 4
+      },
+      {
+        "page_id": "2d0585978fb84bd4ba9c",
+        "page_name": "Forecast Outlook",
+        "visual_id": "17e08d52c6714567a871",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "2d0585978fb84bd4ba9c",
+        "page_name": "Forecast Outlook",
+        "visual_id": "e1bee927f5e84f4e8c97",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "2d0585978fb84bd4ba9c",
+        "page_name": "Forecast Outlook",
+        "visual_id": "160e174a4e8a48759805",
+        "kind": "cardVisual",
+        "position": {
+          "x": 24,
+          "y": 125,
+          "z": 1000,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 100
+        },
+        "title": "Forecast Series",
+        "index": 2
+      },
+      {
+        "page_id": "2d0585978fb84bd4ba9c",
+        "page_name": "Forecast Outlook",
+        "visual_id": "ecc5bfb6371e46789ea1",
+        "kind": "cardVisual",
+        "position": {
+          "x": 226,
+          "y": 125,
+          "z": 1001,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 101
+        },
+        "title": "Avg Horizon",
+        "index": 3
+      },
+      {
+        "page_id": "2d0585978fb84bd4ba9c",
+        "page_name": "Forecast Outlook",
+        "visual_id": "8b480f45bf28447996a4",
+        "kind": "cardVisual",
+        "position": {
+          "x": 428,
+          "y": 125,
+          "z": 1002,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 102
+        },
+        "title": "Avg Recent Change",
+        "index": 4
+      },
+      {
+        "page_id": "2d0585978fb84bd4ba9c",
+        "page_name": "Forecast Outlook",
+        "visual_id": "545e7a76b33f4fad8a6b",
+        "kind": "columnChart",
+        "position": {
+          "x": 24,
+          "y": 225,
+          "z": 2000,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2000
+        },
+        "title": "Forecast Trend Distribution",
+        "index": 5
+      },
+      {
+        "page_id": "2d0585978fb84bd4ba9c",
+        "page_name": "Forecast Outlook",
+        "visual_id": "704cccdc67924f4995e9",
+        "kind": "barChart",
+        "position": {
+          "x": 642,
+          "y": 225,
+          "z": 2001,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2001
+        },
+        "title": "Forecast Confidence Distribution",
+        "index": 6
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "aa106271ae7446b8adba",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "daaf098503eb4a02a9a6",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "8cc84c9c48e94e779581",
+        "kind": "cardVisual",
+        "position": {
+          "x": 24,
+          "y": 165,
+          "z": 1100,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 110
+        },
+        "title": "Recommendations",
+        "index": 2
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "b517b1edeba44be28e4d",
+        "kind": "cardVisual",
+        "position": {
+          "x": 226,
+          "y": 165,
+          "z": 1101,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 111
+        },
+        "title": "Avg Priority",
+        "index": 3
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "0920f8bcad544cf7ad12",
+        "kind": "slicer",
+        "position": {
+          "x": 430,
+          "y": 165,
+          "z": 1200,
+          "height": 92,
+          "width": 250,
+          "tabOrder": 120
+        },
+        "title": "Entity Type",
+        "index": 4
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "fc5efe0821034c26b655",
+        "kind": "slicer",
+        "position": {
+          "x": 696,
+          "y": 165,
+          "z": 1201,
+          "height": 92,
+          "width": 250,
+          "tabOrder": 121
+        },
+        "title": "Entity",
+        "index": 5
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "43296b597d3445899a75",
+        "kind": "columnChart",
+        "position": {
+          "x": 24,
+          "y": 275,
+          "z": 2000,
+          "height": 190,
+          "width": 590,
+          "tabOrder": 2000
+        },
+        "title": "Recommendation Priority Distribution",
+        "index": 6
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "d8791d8f6cfb41cf9b37",
+        "kind": "barChart",
+        "position": {
+          "x": 642,
+          "y": 275,
+          "z": 2001,
+          "height": 190,
+          "width": 590,
+          "tabOrder": 2001
+        },
+        "title": "Finding / Recommendation Type",
+        "index": 7
+      },
+      {
+        "page_id": "0c3e100eac6c45169bed",
+        "page_name": "Recommendations & Actions",
+        "visual_id": "a418d4f4c58a4ca2bc33",
+        "kind": "tableEx",
+        "position": {
+          "x": 24,
+          "y": 485,
+          "z": 2100,
+          "height": 210,
+          "width": 1208,
+          "tabOrder": 2100
+        },
+        "title": "Evidence-Backed Recommendations",
+        "index": 8
+      },
+      {
+        "page_id": "925acbb6b0204aeeb3d9",
+        "page_name": "Signal Intelligence",
+        "visual_id": "3ea078217e8b47b89f6d",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "925acbb6b0204aeeb3d9",
+        "page_name": "Signal Intelligence",
+        "visual_id": "beb967a241774930ba60",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "925acbb6b0204aeeb3d9",
+        "page_name": "Signal Intelligence",
+        "visual_id": "9815ce80a4874142bb3e",
+        "kind": "cardVisual",
+        "position": {
+          "x": 24,
+          "y": 125,
+          "z": 1000,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 100
+        },
+        "title": "Signal Links",
+        "index": 2
+      },
+      {
+        "page_id": "925acbb6b0204aeeb3d9",
+        "page_name": "Signal Intelligence",
+        "visual_id": "9c35d01b9e9a4792bf71",
+        "kind": "columnChart",
+        "position": {
+          "x": 24,
+          "y": 225,
+          "z": 2000,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2000
+        },
+        "title": "Average Signal Relationship Strength",
+        "index": 3
+      },
+      {
+        "page_id": "925acbb6b0204aeeb3d9",
+        "page_name": "Signal Intelligence",
+        "visual_id": "a6234fac768f4aa886f2",
+        "kind": "barChart",
+        "position": {
+          "x": 642,
+          "y": 225,
+          "z": 2001,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2001
+        },
+        "title": "Relationship Evidence by Direction",
+        "index": 4
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "6d40ade702d742308372",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "b2ff9392911248ee94b8",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "881d75ebe68548a3a7a9",
+        "kind": "cardVisual",
+        "position": {
+          "x": 24,
+          "y": 125,
+          "z": 1000,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 100
+        },
+        "title": "Records",
+        "index": 2
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "be9974004cb3434d8111",
+        "kind": "cardVisual",
+        "position": {
+          "x": 226,
+          "y": 125,
+          "z": 1001,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 101
+        },
+        "title": "Duplicates",
+        "index": 3
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "4a71e39d59a14297b2a9",
+        "kind": "cardVisual",
+        "position": {
+          "x": 428,
+          "y": 125,
+          "z": 1002,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 102
+        },
+        "title": "Analyzed Columns",
+        "index": 4
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "2eee5fb9da8b41bba701",
+        "kind": "cardVisual",
+        "position": {
+          "x": 630,
+          "y": 125,
+          "z": 1003,
+          "height": 92,
+          "width": 190,
+          "tabOrder": 103
+        },
+        "title": "Avg Missing Rate",
+        "index": 5
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "17bf86558be9452ba56f",
+        "kind": "barChart",
+        "position": {
+          "x": 24,
+          "y": 225,
+          "z": 2000,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2000
+        },
+        "title": "Average Missing Rate by Structure",
+        "index": 6
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "92ea3d7f3a814b4194d3",
+        "kind": "barChart",
+        "position": {
+          "x": 642,
+          "y": 225,
+          "z": 2001,
+          "height": 250,
+          "width": 590,
+          "tabOrder": 2001
+        },
+        "title": "Duplicate Records by Structure",
+        "index": 7
+      },
+      {
+        "page_id": "48a7280976c94c959188",
+        "page_name": "Data Quality & Readiness",
+        "visual_id": "8160a91b58f54e47b460",
+        "kind": "tableEx",
+        "position": {
+          "x": 24,
+          "y": 495,
+          "z": 2100,
+          "height": 205,
+          "width": 1208,
+          "tabOrder": 2100
+        },
+        "title": "Readiness Structure Matrix",
+        "index": 8
+      },
+      {
+        "page_id": "7af7bbc25b08412e8a47",
+        "page_name": "Record Explorer",
+        "visual_id": "145b4dbe5a524a0982e3",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 8,
+          "z": 3000,
+          "height": 77,
+          "width": 1180,
+          "tabOrder": 0
+        },
+        "title": null,
+        "index": 0
+      },
+      {
+        "page_id": "7af7bbc25b08412e8a47",
+        "page_name": "Record Explorer",
+        "visual_id": "afe4b78cc18b493984d0",
+        "kind": "textbox",
+        "position": {
+          "x": 24,
+          "y": 86,
+          "z": 3001,
+          "height": 32,
+          "width": 1180,
+          "tabOrder": 1
+        },
+        "title": null,
+        "index": 1
+      },
+      {
+        "page_id": "7af7bbc25b08412e8a47",
+        "page_name": "Record Explorer",
+        "visual_id": "730e1db9448b40729ea8",
+        "kind": "slicer",
+        "position": {
+          "x": 24,
+          "y": 125,
+          "z": 1000,
+          "height": 92,
+          "width": 240,
+          "tabOrder": 100
+        },
+        "title": "customer_id",
+        "index": 2
+      },
+      {
+        "page_id": "7af7bbc25b08412e8a47",
+        "page_name": "Record Explorer",
+        "visual_id": "1c362b6b43ad4610a869",
+        "kind": "slicer",
+        "position": {
+          "x": 284,
+          "y": 125,
+          "z": 1001,
+          "height": 92,
+          "width": 240,
+          "tabOrder": 101
+        },
+        "title": "order_status",
+        "index": 3
+      },
+      {
+        "page_id": "7af7bbc25b08412e8a47",
+        "page_name": "Record Explorer",
+        "visual_id": "69c36ddff06d48d7b808",
+        "kind": "cardVisual",
+        "position": {
+          "x": 1000,
+          "y": 125,
+          "z": 1100,
+          "height": 92,
+          "width": 208,
+          "tabOrder": 110
+        },
+        "title": "Filtered Records",
+        "index": 4
+      },
+      {
+        "page_id": "7af7bbc25b08412e8a47",
+        "page_name": "Record Explorer",
+        "visual_id": "dd4e31b491cf4b8e93bd",
+        "kind": "tableEx",
+        "position": {
+          "x": 24,
+          "y": 225,
+          "z": 2000,
+          "height": 495,
+          "width": 1208,
+          "tabOrder": 2000
+        },
+        "title": "Current-Run Record Inspection",
+        "index": 5
+      }
+    ]
+  },
+  "validation": {
+    "required_files_validated": 9,
+    "json_files_validated": 74,
+    "tmdl_files_present": 30,
+    "table_definitions": 30,
+    "tmdl_validation": [
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Analytical_Readiness.tmdl",
+        "table": "analysis_results_Analytical_Readiness",
+        "columns": 15,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Categorical_Statistics.tmdl",
+        "table": "analysis_results_Categorical_Statistics",
+        "columns": 8,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Demand_Candidate_Evidence.tmdl",
+        "table": "analysis_results_Demand_Candidate_Evidence",
+        "columns": 10,
+        "measures": 2,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Demand_Signal_Evidence.tmdl",
+        "table": "analysis_results_Demand_Signal_Evidence",
+        "columns": 13,
+        "measures": 4,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Dimension_Measure_Aggregations.tmdl",
+        "table": "analysis_results_Dimension_Measure_Aggregations",
+        "columns": 9,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Numeric_Correlations.tmdl",
+        "table": "analysis_results_Numeric_Correlations",
+        "columns": 4,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Numeric_Statistics.tmdl",
+        "table": "analysis_results_Numeric_Statistics",
+        "columns": 13,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Relationship_Evidence.tmdl",
+        "table": "analysis_results_Relationship_Evidence",
+        "columns": 11,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Schema_Evidence.tmdl",
+        "table": "analysis_results_Schema_Evidence",
+        "columns": 11,
+        "measures": 2,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Table_Overview.tmdl",
+        "table": "analysis_results_Table_Overview",
+        "columns": 7,
+        "measures": 9,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Temporal_Changes.tmdl",
+        "table": "analysis_results_Temporal_Changes",
+        "columns": 6,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Temporal_Measure_Aggregations.tmdl",
+        "table": "analysis_results_Temporal_Measure_Aggregations",
+        "columns": 10,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analysis_results_Temporal_Statistics.tmdl",
+        "table": "analysis_results_Temporal_Statistics",
+        "columns": 7,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_commodity_prices.tmdl",
+        "table": "analytical_dataset_commodity_prices",
+        "columns": 22,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_companies.tmdl",
+        "table": "analytical_dataset_companies",
+        "columns": 9,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_competitor_activity.tmdl",
+        "table": "analytical_dataset_competitor_activity",
+        "columns": 24,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_customer_orders.tmdl",
+        "table": "analytical_dataset_customer_orders",
+        "columns": 37,
+        "measures": 2,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_demand_sensing_daily.tmdl",
+        "table": "analytical_dataset_demand_sensing_daily",
+        "columns": 55,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_economic_indicators.tmdl",
+        "table": "analytical_dataset_economic_indicators",
+        "columns": 21,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_market_trends.tmdl",
+        "table": "analytical_dataset_market_trends",
+        "columns": 20,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_production.tmdl",
+        "table": "analytical_dataset_production",
+        "columns": 23,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_sales.tmdl",
+        "table": "analytical_dataset_sales",
+        "columns": 23,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\analytical_dataset_weather.tmdl",
+        "table": "analytical_dataset_weather",
+        "columns": 23,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\forecast_results_Forecast_Evidence.tmdl",
+        "table": "forecast_results_Forecast_Evidence",
+        "columns": 7,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\forecast_results_Forecast_Summary.tmdl",
+        "table": "forecast_results_Forecast_Summary",
+        "columns": 2,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\forecast_results_Forecasts.tmdl",
+        "table": "forecast_results_Forecasts",
+        "columns": 26,
+        "measures": 6,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\forecast_results_Temporal_Evidence.tmdl",
+        "table": "forecast_results_Temporal_Evidence",
+        "columns": 2,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\recommendation_results_Evidence_Summary.tmdl",
+        "table": "recommendation_results_Evidence_Summary",
+        "columns": 5,
+        "measures": 0,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\recommendation_results_Recommendations.tmdl",
+        "table": "recommendation_results_Recommendations",
+        "columns": 21,
+        "measures": 4,
+        "source_references": 1
+      },
+      {
+        "path": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\Demand_Intelligence_Report_run_20261003T110932_788313Z_8dad791eb2\\Model.SemanticModel\\definition\\tables\\recommendation_results_Summary.tmdl",
+        "table": "recommendation_results_Summary",
+        "columns": 2,
+        "measures": 0,
+        "source_references": 1
+      }
+    ],
+    "materialized_relationships": 0,
+    "relationship_candidates": 421,
+    "page_validation": {
+      "page_count": 8,
+      "visual_count": 62,
+      "pages": [
+        {
+          "page_id": "d77f152fe0f541f2a62a",
+          "display_name": "Executive Intelligence",
+          "visual_count": 10,
+          "visual_types": [
+            "cardVisual",
+            "cardVisual",
+            "columnChart",
+            "cardVisual",
+            "cardVisual",
+            "cardVisual",
+            "columnChart",
+            "textbox",
+            "cardVisual",
+            "textbox"
+          ]
+        },
+        {
+          "page_id": "bfad6dee68434ab78f9f",
+          "display_name": "Data Landscape",
+          "visual_count": 11,
+          "visual_types": [
+            "cardVisual",
+            "barChart",
+            "cardVisual",
+            "barChart",
+            "cardVisual",
+            "cardVisual",
+            "cardVisual",
+            "tableEx",
+            "textbox",
+            "cardVisual",
+            "textbox"
+          ]
+        },
+        {
+          "page_id": "e0b277bb599041aa9b49",
+          "display_name": "Demand Intelligence",
+          "visual_count": 5,
+          "visual_types": [
+            "barChart",
+            "textbox",
+            "columnChart",
+            "textbox",
+            "cardVisual"
+          ]
+        },
+        {
+          "page_id": "2d0585978fb84bd4ba9c",
+          "display_name": "Forecast Outlook",
+          "visual_count": 7,
+          "visual_types": [
+            "cardVisual",
+            "textbox",
+            "columnChart",
+            "barChart",
+            "cardVisual",
+            "textbox",
+            "cardVisual"
+          ]
+        },
+        {
+          "page_id": "0c3e100eac6c45169bed",
+          "display_name": "Recommendations & Actions",
+          "visual_count": 9,
+          "visual_types": [
+            "slicer",
+            "columnChart",
+            "cardVisual",
+            "tableEx",
+            "textbox",
+            "cardVisual",
+            "barChart",
+            "textbox",
+            "slicer"
+          ]
+        },
+        {
+          "page_id": "925acbb6b0204aeeb3d9",
+          "display_name": "Signal Intelligence",
+          "visual_count": 5,
+          "visual_types": [
+            "textbox",
+            "cardVisual",
+            "columnChart",
+            "barChart",
+            "textbox"
+          ]
+        },
+        {
+          "page_id": "48a7280976c94c959188",
+          "display_name": "Data Quality & Readiness",
+          "visual_count": 9,
+          "visual_types": [
+            "barChart",
+            "cardVisual",
+            "cardVisual",
+            "textbox",
+            "tableEx",
+            "cardVisual",
+            "barChart",
+            "textbox",
+            "cardVisual"
+          ]
+        },
+        {
+          "page_id": "7af7bbc25b08412e8a47",
+          "display_name": "Record Explorer",
+          "visual_count": 6,
+          "visual_types": [
+            "textbox",
+            "slicer",
+            "cardVisual",
+            "slicer",
+            "textbox",
+            "tableEx"
+          ]
+        }
+      ]
+    },
+    "security": {
+      "status": "BOUNDARY_DISCOVERED_MAPPING_REQUIRED",
+      "table": "analysis_results_Analytical_Readiness",
+      "column": "table",
+      "related_table_count": 13,
+      "operational_identity_mapping_established": false,
+      "operational_rls": false,
+      "access_default": "deny"
+    },
+    "desktop_validation": "NOT_PERFORMED",
+    "status": "STRUCTURAL_AND_SEMANTIC_VALIDATION_PASSED"
+  },
+  "timings_seconds": {
+    "total": 4.06086339999456
+  },
+  "documentation": "C:\\Users\\DELL\\OneDrive\\Desktop\\Enterprise_Demand_Intelligence\\powerbi\\documentation\\run_20261003T110932_788313Z_8dad791eb2\\README.txt"
+}

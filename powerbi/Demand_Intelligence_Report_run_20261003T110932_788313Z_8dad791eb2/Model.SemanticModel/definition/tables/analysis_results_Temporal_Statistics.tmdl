@@ -1,0 +1,58 @@
+table 'analysis_results_Temporal_Statistics'
+    column 'table'
+        dataType: string
+        sourceColumn: "table"
+        summarizeBy: none
+
+    column 'column'
+        dataType: string
+        sourceColumn: "column"
+        summarizeBy: none
+
+    column 'valid_count'
+        dataType: int64
+        sourceColumn: "valid_count"
+        summarizeBy: sum
+
+    column 'missing_count'
+        dataType: int64
+        sourceColumn: "missing_count"
+        summarizeBy: sum
+
+    column 'minimum'
+        dataType: string
+        sourceColumn: "minimum"
+        summarizeBy: none
+
+    column 'maximum'
+        dataType: string
+        sourceColumn: "maximum"
+        summarizeBy: none
+
+    column 'distinct_periods'
+        dataType: int64
+        sourceColumn: "distinct_periods"
+        summarizeBy: sum
+
+    partition 'analysis_results_Temporal_Statistics_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analysis_results.xlsx"), null, true),
+                SheetData = Source{[Item="Temporal_Statistics",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"table", type text},
+                        {"column", type text},
+                        {"valid_count", Int64.Type},
+                        {"missing_count", Int64.Type},
+                        {"minimum", type text},
+                        {"maximum", type text},
+                        {"distinct_periods", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns

@@ -1,0 +1,103 @@
+table 'analysis_results_Demand_Signal_Evidence'
+    column 'target_table'
+        dataType: string
+        sourceColumn: "target_table"
+        summarizeBy: none
+
+    column 'target_time_column'
+        dataType: string
+        sourceColumn: "target_time_column"
+        summarizeBy: none
+
+    column 'target_measure_column'
+        dataType: string
+        sourceColumn: "target_measure_column"
+        summarizeBy: none
+
+    column 'signal_table'
+        dataType: string
+        sourceColumn: "signal_table"
+        summarizeBy: none
+
+    column 'signal_time_column'
+        dataType: string
+        sourceColumn: "signal_time_column"
+        summarizeBy: none
+
+    column 'signal_measure_column'
+        dataType: string
+        sourceColumn: "signal_measure_column"
+        summarizeBy: none
+
+    column 'lag_periods'
+        dataType: int64
+        sourceColumn: "lag_periods"
+        summarizeBy: sum
+
+    column 'aligned_observations'
+        dataType: int64
+        sourceColumn: "aligned_observations"
+        summarizeBy: sum
+
+    column 'level_correlation'
+        dataType: double
+        sourceColumn: "level_correlation"
+        summarizeBy: sum
+
+    column 'change_correlation'
+        dataType: double
+        sourceColumn: "change_correlation"
+        summarizeBy: sum
+
+    column 'directional_agreement'
+        dataType: double
+        sourceColumn: "directional_agreement"
+        summarizeBy: sum
+
+    column 'direction'
+        dataType: string
+        sourceColumn: "direction"
+        summarizeBy: none
+
+    column 'relationship_strength'
+        dataType: double
+        sourceColumn: "relationship_strength"
+        summarizeBy: sum
+
+    partition 'analysis_results_Demand_Signal_Evidence_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analysis_results.xlsx"), null, true),
+                SheetData = Source{[Item="Demand_Signal_Evidence",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"target_table", type text},
+                        {"target_time_column", type text},
+                        {"target_measure_column", type text},
+                        {"signal_table", type text},
+                        {"signal_time_column", type text},
+                        {"signal_measure_column", type text},
+                        {"lag_periods", Int64.Type},
+                        {"aligned_observations", Int64.Type},
+                        {"level_correlation", type number},
+                        {"change_correlation", type number},
+                        {"directional_agreement", type number},
+                        {"direction", type text},
+                        {"relationship_strength", type number}
+                    }
+                )
+            in
+                TypedColumns
+    measure 'Signal Relationship Count' = COUNTROWS('analysis_results_Demand_Signal_Evidence')
+        formatString: #,##0
+    measure 'Average Relationship Strength' = AVERAGE('analysis_results_Demand_Signal_Evidence'[relationship_strength])
+        formatString: 0.00
+    measure 'Strong Signal Relationships' = CALCULATE(COUNTROWS('analysis_results_Demand_Signal_Evidence'), 'analysis_results_Demand_Signal_Evidence'[relationship_strength] >= 0.7)
+        formatString: #,##0
+    measure 'Signal Direction Count' = COUNTROWS('analysis_results_Demand_Signal_Evidence')
+        formatString: #,##0
+

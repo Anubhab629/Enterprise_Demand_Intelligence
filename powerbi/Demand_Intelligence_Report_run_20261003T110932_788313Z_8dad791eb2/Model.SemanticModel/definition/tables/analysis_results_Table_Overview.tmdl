@@ -1,0 +1,77 @@
+table 'analysis_results_Table_Overview'
+    column 'table'
+        dataType: string
+        sourceColumn: "table"
+        summarizeBy: none
+
+    column 'row_count'
+        dataType: int64
+        sourceColumn: "row_count"
+        summarizeBy: sum
+
+    column 'column_count'
+        dataType: int64
+        sourceColumn: "column_count"
+        summarizeBy: sum
+
+    column 'numeric_column_count'
+        dataType: int64
+        sourceColumn: "numeric_column_count"
+        summarizeBy: sum
+
+    column 'temporal_column_count'
+        dataType: int64
+        sourceColumn: "temporal_column_count"
+        summarizeBy: sum
+
+    column 'categorical_column_count'
+        dataType: int64
+        sourceColumn: "categorical_column_count"
+        summarizeBy: sum
+
+    column 'duplicate_row_count'
+        dataType: int64
+        sourceColumn: "duplicate_row_count"
+        summarizeBy: sum
+
+    partition 'analysis_results_Table_Overview_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analysis_results.xlsx"), null, true),
+                SheetData = Source{[Item="Table_Overview",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"table", type text},
+                        {"row_count", Int64.Type},
+                        {"column_count", Int64.Type},
+                        {"numeric_column_count", Int64.Type},
+                        {"temporal_column_count", Int64.Type},
+                        {"categorical_column_count", Int64.Type},
+                        {"duplicate_row_count", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns
+    measure 'Discovered Structure Count' = COUNTROWS('analysis_results_Table_Overview')
+        formatString: #,##0
+    measure 'Landscape Structures' = COUNTROWS('analysis_results_Table_Overview')
+        formatString: #,##0
+    measure 'Landscape Records' = SUM('analysis_results_Table_Overview'[row_count])
+        formatString: #,##0
+    measure 'Landscape Columns' = SUM('analysis_results_Table_Overview'[column_count])
+        formatString: #,##0
+    measure 'Landscape Numeric Fields' = SUM('analysis_results_Table_Overview'[numeric_column_count])
+        formatString: #,##0
+    measure 'Landscape Temporal Fields' = SUM('analysis_results_Table_Overview'[temporal_column_count])
+        formatString: #,##0
+    measure 'Landscape Categorical Fields' = SUM('analysis_results_Table_Overview'[categorical_column_count])
+        formatString: #,##0
+    measure 'Quality Records' = SUM('analysis_results_Table_Overview'[row_count])
+        formatString: #,##0
+    measure 'Duplicate Records' = SUM('analysis_results_Table_Overview'[duplicate_row_count])
+        formatString: #,##0
+

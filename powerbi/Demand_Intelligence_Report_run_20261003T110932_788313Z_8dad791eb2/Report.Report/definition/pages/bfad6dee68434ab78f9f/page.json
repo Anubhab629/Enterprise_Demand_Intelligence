@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "bfad6dee68434ab78f9f",
+  "displayName": "Data Landscape",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "annotations": [
+    {
+      "name": "PageQuestion",
+      "value": "What data and analytical capabilities were discovered?"
+    }
+  ]
+}

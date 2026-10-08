@@ -1,0 +1,94 @@
+table 'analysis_results_Numeric_Statistics'
+    column 'table'
+        dataType: string
+        sourceColumn: "table"
+        summarizeBy: none
+
+    column 'column'
+        dataType: string
+        sourceColumn: "column"
+        summarizeBy: none
+
+    column 'count'
+        dataType: int64
+        sourceColumn: "count"
+        summarizeBy: sum
+
+    column 'sum'
+        dataType: double
+        sourceColumn: "sum"
+        summarizeBy: sum
+
+    column 'mean'
+        dataType: double
+        sourceColumn: "mean"
+        summarizeBy: sum
+
+    column 'median'
+        dataType: double
+        sourceColumn: "median"
+        summarizeBy: sum
+
+    column 'std'
+        dataType: double
+        sourceColumn: "std"
+        summarizeBy: sum
+
+    column 'min'
+        dataType: double
+        sourceColumn: "min"
+        summarizeBy: sum
+
+    column 'q25'
+        dataType: double
+        sourceColumn: "q25"
+        summarizeBy: sum
+
+    column 'q75'
+        dataType: double
+        sourceColumn: "q75"
+        summarizeBy: sum
+
+    column 'max'
+        dataType: double
+        sourceColumn: "max"
+        summarizeBy: sum
+
+    column 'zero_count'
+        dataType: int64
+        sourceColumn: "zero_count"
+        summarizeBy: sum
+
+    column 'negative_count'
+        dataType: int64
+        sourceColumn: "negative_count"
+        summarizeBy: sum
+
+    partition 'analysis_results_Numeric_Statistics_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analysis_results.xlsx"), null, true),
+                SheetData = Source{[Item="Numeric_Statistics",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"table", type text},
+                        {"column", type text},
+                        {"count", Int64.Type},
+                        {"sum", type number},
+                        {"mean", type number},
+                        {"median", type number},
+                        {"std", type number},
+                        {"min", type number},
+                        {"q25", type number},
+                        {"q75", type number},
+                        {"max", type number},
+                        {"zero_count", Int64.Type},
+                        {"negative_count", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns

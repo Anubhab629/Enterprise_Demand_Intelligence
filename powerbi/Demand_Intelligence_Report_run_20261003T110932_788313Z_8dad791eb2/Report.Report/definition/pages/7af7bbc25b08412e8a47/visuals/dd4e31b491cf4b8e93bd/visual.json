@@ -1,0 +1,245 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "dd4e31b491cf4b8e93bd",
+  "position": {
+    "x": 24,
+    "y": 225,
+    "z": 2000,
+    "height": 495,
+    "width": 1208,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "company_id"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.company_id",
+              "nativeQueryRef": "company_id",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "product"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.product",
+              "nativeQueryRef": "product",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "customer_id"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.customer_id",
+              "nativeQueryRef": "customer_id",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "order_status"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.order_status",
+              "nativeQueryRef": "order_status",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "expected_delivery_date"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.expected_delivery_date",
+              "nativeQueryRef": "expected_delivery_date",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "order_date"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.order_date",
+              "nativeQueryRef": "order_date",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "order_id"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.order_id",
+              "nativeQueryRef": "order_id",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "analytical_dataset_customer_orders"
+                    }
+                  },
+                  "Property": "missing_value_count"
+                }
+              },
+              "queryRef": "analytical_dataset_customer_orders.missing_value_count",
+              "nativeQueryRef": "missing_value_count",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Current-Run Record Inspection'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,70 @@
+table 'analytical_dataset_companies'
+    column 'company_id'
+        dataType: string
+        sourceColumn: "company_id"
+        summarizeBy: none
+
+    column 'company_name'
+        dataType: string
+        sourceColumn: "company_name"
+        summarizeBy: none
+
+    column 'industry'
+        dataType: string
+        sourceColumn: "industry"
+        summarizeBy: none
+
+    column 'city'
+        dataType: string
+        sourceColumn: "city"
+        summarizeBy: none
+
+    column 'state'
+        dataType: string
+        sourceColumn: "state"
+        summarizeBy: none
+
+    column 'primary_market'
+        dataType: string
+        sourceColumn: "primary_market"
+        summarizeBy: none
+
+    column 'missing_value_count'
+        dataType: int64
+        sourceColumn: "__missing_value_count"
+        summarizeBy: sum
+
+    column 'non_missing_value_count'
+        dataType: int64
+        sourceColumn: "__non_missing_value_count"
+        summarizeBy: sum
+
+    column 'missing_value_ratio'
+        dataType: int64
+        sourceColumn: "__missing_value_ratio"
+        summarizeBy: sum
+
+    partition 'analytical_dataset_companies_Partition' = m
+        mode: import
+        source =
+            let
+                Source = Excel.Workbook(File.Contents("C:/Users/DELL/OneDrive/Desktop/Enterprise_Demand_Intelligence/powerbi/data/run_20261003T110932_788313Z_8dad791eb2/analytical_dataset.xlsx"), null, true),
+                SheetData = Source{[Item="companies",Kind="Sheet"]}[Data],
+                PromotedHeaders = Table.PromoteHeaders(
+                    SheetData, [PromoteAllScalars=true]),
+                TypedColumns = Table.TransformColumnTypes(
+                    PromotedHeaders,
+                    {
+                        {"company_id", type text},
+                        {"company_name", type text},
+                        {"industry", type text},
+                        {"city", type text},
+                        {"state", type text},
+                        {"primary_market", type text},
+                        {"__missing_value_count", Int64.Type},
+                        {"__non_missing_value_count", Int64.Type},
+                        {"__missing_value_ratio", Int64.Type}
+                    }
+                )
+            in
+                TypedColumns
