@@ -862,6 +862,59 @@ def format_duration(seconds: float) -> str:
     return f"{int(minutes)}m {remainder:04.1f}s"
 
 
+
+def launch_streamlit_dashboard() -> None:
+    """Optionally launch the Streamlit dashboard after a successful full pipeline."""
+    import subprocess
+
+    dashboard_path = PROJECT_ROOT / "streamlit_app" / "app.py"
+    if not dashboard_path.is_file():
+        print(f"Streamlit dashboard not found; skipping launch: {dashboard_path}")
+        return
+
+    while True:
+        try:
+            answer = input("\nRun the Streamlit dashboard now? (Y/N): ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\nStreamlit launch skipped.")
+            return
+
+        if answer in {"y", "yes"}:
+            break
+        if answer in {"n", "no"}:
+            print("Streamlit launch skipped.")
+            return
+        print("Please enter Y (yes) or N (no).")
+
+    command = [
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        str(dashboard_path),
+        "--server.headless",
+        "false",
+    ]
+
+    try:
+        creation_flags = (
+            subprocess.CREATE_NEW_CONSOLE
+            if os.name == "nt"
+            else 0
+        )
+        process = subprocess.Popen(
+            command,
+            cwd=str(PROJECT_ROOT),
+            creationflags=creation_flags,
+        )
+        print(f"Streamlit dashboard launch requested (PID: {process.pid}).")
+        print("The dashboard will open in your browser at http://localhost:8501")
+    except OSError as exc:
+        print(
+            f"Could not launch the Streamlit dashboard: {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
+
 def run_application() -> int:
     pipeline_started = time.perf_counter()
     context: RunContext | None = None
@@ -894,6 +947,7 @@ def run_application() -> int:
             return 1
 
         log(context, "PIPELINE: SUCCESS")
+        launch_streamlit_dashboard()
         return 0
     finally:
         total_seconds = time.perf_counter() - pipeline_started

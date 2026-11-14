@@ -12,13 +12,16 @@ capabilities instead of inventing missing business concepts.
 """
 from __future__ import annotations
 
+import ast
 import json
 import sys
 from pathlib import Path
 from typing import Any
 
+
 import numpy as np
 import pandas as pd
+import re
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -166,6 +169,224 @@ def _safe_json(value: Any) -> Any:
 
     return str(value)
 
+def _humanize_label(value: Any) -> str:
+    """Convert technical field names into readable Excel labels."""
+    text = str(value).strip()
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    text = text.replace("_", " ")
+    return " ".join(word.capitalize() for word in text.split())
+
+
+def _is_missing_excel_value(value: Any) -> bool:
+    """Check scalar missing values without treating containers as missing."""
+    if value is None:
+        return True
+
+    if isinstance(value, (dict, list, tuple, set)):
+        return False
+
+    try:
+        return bool(pd.isna(value))
+    except (TypeError, ValueError):
+        return False
+
+
+def _format_excel_nested_value(
+    value: Any,
+    column: str,
+) -> Any:
+    """Convert nested analytical values into readable Excel representations."""
+
+    if _is_missing_excel_value(value):
+        return None
+
+    if isinstance(value, dict):
+        if not value:
+            return "Overall / Aggregate"
+
+        return "; ".join(
+            f"{_humanize_label(key)}: "
+            f"{_format_excel_nested_value(item, column)}"
+            for key, item in value.items()
+        )
+
+    if isinstance(value, (list, tuple, set)):
+        items = list(value)
+
+        if not items:
+            if "dimension" in column.lower():
+                return "Overall / Aggregate"
+            return "None identified"
+
+        return ", ".join(
+            str(_format_excel_nested_value(item, column))
+            for item in items
+        )
+
+    if isinstance(value, str):
+        return value
+
+    return _safe_json(value)
+
+
+
+def _humanize_field_name(value: Any) -> str:
+    """Convert technical field names into readable Excel labels."""
+    text = str(value).strip()
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    text = text.replace("_", " ")
+    return " ".join(part.capitalize() for part in text.split())
+
+
+def _format_excel_value(value: Any, column: str) -> Any:
+    """Format nested values for Excel without changing source data."""
+
+    if value is None:
+        return None
+
+    if not isinstance(value, (dict, list, tuple, set)):
+        try:
+            if pd.isna(value):
+                return None
+        except (TypeError, ValueError):
+            pass
+
+    if isinstance(value, dict):
+        if not value:
+            return "Overall / Aggregate"
+
+        return "; ".join(
+            f"{_humanize_field_name(key)}: "
+            f"{_format_excel_value(item, column)}"
+            for key, item in value.items()
+        )
+
+    if isinstance(value, (list, tuple, set)):
+        items = list(value)
+
+        if not items:
+            if "dimension" in column.casefold():
+                return "Overall / Aggregate"
+            return "None"
+
+        return ", ".join(
+            str(_format_excel_value(item, column))
+            for item in items
+        )
+
+    if isinstance(value, str):
+        stripped = value.strip()
+
+        if stripped.startswith(("[", "{")):
+            try:
+                parsed = json.loads(stripped)
+            except (json.JSONDecodeError, TypeError):
+                return value
+
+            if isinstance(parsed, (dict, list)):
+                return _format_excel_value(parsed, column)
+
+        return value
+
+    return _safe_json(value)
+
+
+def _humanize_field_name(value: Any) -> str:
+    """Convert technical field names into readable Excel labels."""
+    text = str(value).strip()
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    text = text.replace("_", " ")
+    return " ".join(part.capitalize() for part in text.split())
+
+
+def _format_excel_value(
+    value: Any,
+    column: str,
+    status: Any = None,
+) -> Any:
+    """Format nested values for Excel without changing source data."""
+
+    if value is None:
+        return None
+
+    if not isinstance(value, (dict, list, tuple, set)):
+        try:
+            if pd.isna(value):
+                return None
+        except (TypeError, ValueError):
+            pass
+
+    if isinstance(value, dict):
+        if not value:
+            return "Overall / Aggregate"
+
+        return "; ".join(
+            f"{_humanize_field_name(key)}: "
+            f"{_format_excel_value(item, column, status)}"
+            for key, item in value.items()
+        )
+
+    if isinstance(value, (list, tuple, set)):
+        items = list(value)
+
+        if not items:
+            if column.casefold() == "dimensions_considered":
+                if status == "technical_generation_limit_reached":
+                    return "Not applicable"
+                return "No dimensions identified"
+
+            return "None"
+
+        return ", ".join(
+            str(_format_excel_value(item, column, status))
+            for item in items
+        )
+
+    if isinstance(value, str):
+        stripped = value.strip()
+
+        if stripped.startswith(("[", "{")):
+            try:
+                parsed = json.loads(stripped)
+            except (json.JSONDecodeError, TypeError):
+                return value
+
+            if isinstance(parsed, (dict, list)):
+                return _format_excel_value(parsed, column, status)
+
+        return value
+
+    return _safe_json(value)
+
+
+def _serialize_nested_cells(
+    frame: pd.DataFrame,
+    preserve_columns: set[str] | None = None,
+) -> pd.DataFrame:
+    """Create a readable presentation copy while preserving metadata."""
+
+    result = frame.copy()
+    preserve_columns = preserve_columns or set()
+
+    for index in result.index:
+        status = (
+            result.at[index, "status"]
+            if "status" in result.columns
+            else None
+        )
+
+        for column in result.columns:
+            if column in preserve_columns:
+                continue
+
+            result.at[index, column] = _format_excel_value(
+                result.at[index, column],
+                str(column),
+                status,
+            )
+
+    return result
+
 
 def _normalise_tables(obj: Any) -> dict[str, pd.DataFrame]:
     if isinstance(obj, dict):
@@ -254,10 +475,34 @@ def _candidate_input_files() -> list[Path]:
 
     if candidates:
         return candidates
-
+    
+    # Fallback: discover analytical artifacts from completed historical runs.
+    # Current output always takes priority over historical artifacts.
+    runs_directory = OUTPUT_DIR / "runs"
+    
+    historical_candidates = sorted(
+        (
+            path
+            for path in runs_directory.glob("*/output/analytical_dataset.*")
+            if (
+                path.is_file()
+                and path.stat().st_size > 0
+                and path.suffix.lower().lstrip(".") in SUPPORTED_INPUT_FORMATS
+            )
+        ),
+        key=lambda path: (
+            path.stat().st_mtime_ns,
+            str(path).lower(),
+        ),
+        reverse=True,
+    )
+    
+    if historical_candidates:
+        return [historical_candidates[0]]
+    
     raise FileNotFoundError(
-        "No analytical dataset produced by the preceding pipeline stage "
-        "was found in the configured output directory."
+        "No analytical dataset was found in the configured output directory "
+        "or in historical pipeline run outputs."
     )
 
 
@@ -1283,19 +1528,25 @@ def generate_forecasts(
                 if result is None:
                     continue
 
-                result[
-                    "table"
-                ] = table
-
-                result[
-                    "candidate_score"
-                ] = candidate[
+                result["table"] = table
+                result["candidate_score"] = candidate[
                     "candidate_score"
                 ]
 
-                forecasts.append(
-                    result
+                # Preserve the actual dimensions used to generate this series.
+                result["_is_aggregate"] = not bool(dimension_set)
+
+                result["_aggregate_dimensions"] = (
+                    list(dimensions)
+                    if not dimension_set
+                    else []
                 )
+
+                result["_candidate_dimensions"] = list(dimensions)
+                result["_group_dimensions"] = list(dimension_set)
+
+                # IMPORTANT: this append belongs inside the grouped-series loop.
+                forecasts.append(result)
 
                 produced += 1
                 generated_series_count += 1
@@ -1391,17 +1642,264 @@ def write_outputs(
     evidence: pd.DataFrame,
     candidates: list[dict[str, Any]],
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    
     summary = build_summary(forecasts)
     temporal = pd.DataFrame(discover_temporal_columns(tables))
+    
+    # Add the trend to the analytical forecast DataFrame first.
     if not forecasts.empty:
         forecasts = forecasts.copy()
-        forecasts["DemandTrend"] = forecasts["RecentVsBaselineChangePct"].map(_trend_label)
+        forecasts["DemandTrend"] = forecasts[
+            "RecentVsBaselineChangePct"
+        ].map(_trend_label)
+    
+    # Create a presentation-only copy.
+    # The original forecasts DataFrame retains all machine-readable metadata.
+    excel_forecasts = forecasts.copy()
+    excel_evidence = evidence.copy()
+
+    internal_columns = [
+        "_is_aggregate",
+        "_aggregate_dimensions",
+        "_candidate_dimensions",
+        "_group_dimensions",
+    ]
+
+    dimension_status_definitions = [
+        (
+            "Not available in source table",
+            "The source table does not contain this field.",
+            "No value can be retrieved from this table.",
+        ),
+        (
+            "Not selected for this forecast",
+            "The field exists, but it was not used as a grouping dimension.",
+            "This does not mean the source value is missing.",
+        ),
+        (
+            "Missing in source",
+            "The field exists and was selected, but its source value is empty.",
+            "No value is fabricated.",
+        ),
+        (
+            "Aggregate / overall series",
+            "The forecast represents an aggregate across values of this dimension.",
+            "It is not an individual dimension value.",
+        ),
+        (
+            "Actual source value available",
+            "A real value exists for this dimension.",
+            "The actual value is preserved.",
+        ),
+    ]
+
+    # Discover dimension columns dynamically from forecast metadata.
+    all_dimensions = set()
+
+    if not excel_forecasts.empty:
+        for values in excel_forecasts["_candidate_dimensions"]:
+            if isinstance(values, (list, tuple, set)):
+                all_dimensions.update(str(value) for value in values)
+
+    # Classify each dimension separately for every forecast row.
+    for dimension in sorted(all_dimensions):
+
+        if dimension not in excel_forecasts.columns:
+            excel_forecasts[dimension] = None
+
+        excel_forecasts[dimension] = (
+            excel_forecasts[dimension].astype(object)
+        )
+
+        for index in excel_forecasts.index:
+
+            table_name = str(
+                excel_forecasts.at[index, "table"]
+            )
+
+            source_frame = tables.get(table_name)
+
+            source_columns = (
+                set(map(str, source_frame.columns))
+                if source_frame is not None
+                else set()
+            )
+
+            group_dimensions = excel_forecasts.at[
+                index, "_group_dimensions"
+            ]
+
+            aggregate_dimensions = excel_forecasts.at[
+                index, "_aggregate_dimensions"
+            ]
+
+            group_dimensions = (
+                set(map(str, group_dimensions))
+                if isinstance(group_dimensions, (list, tuple, set))
+                else set()
+            )
+
+            aggregate_dimensions = (
+                set(map(str, aggregate_dimensions))
+                if isinstance(aggregate_dimensions, (list, tuple, set))
+                else set()
+            )
+
+            is_aggregate = bool(
+                excel_forecasts.at[index, "_is_aggregate"]
+            )
+
+            current_value = excel_forecasts.at[
+                index, dimension
+            ]
+
+            if dimension not in source_columns:
+
+                display_value = "Not available in source table"
+
+            elif (
+                is_aggregate
+                and dimension in aggregate_dimensions
+            ):
+
+                display_value = "Overall / Aggregate"
+
+            elif dimension in group_dimensions:
+
+                try:
+                    is_missing = bool(pd.isna(current_value))
+                except (TypeError, ValueError):
+                    is_missing = False
+
+                display_value = (
+                    "Missing in source"
+                    if is_missing
+                    else current_value
+                )
+
+            else:
+
+                display_value = "Not selected for this forecast"
+
+            excel_forecasts.at[
+                index, dimension
+            ] = display_value
+
+    # Present the evidence dimension list as readable text.
+    def present_dimensions(value):
+
+        if isinstance(value, str):
+            stripped = value.strip()
+
+            if stripped.startswith(("[", "(")):
+                try:
+                    value = ast.literal_eval(stripped)
+                except (ValueError, SyntaxError, TypeError):
+                    pass
+
+        if isinstance(value, (list, tuple, set)):
+
+            if not value:
+                return "No grouping dimensions selected"
+
+            return ", ".join(
+                _humanize_field_name(item)
+                for item in value
+            )
+
+        return value
+
+    if "dimensions_considered" in excel_evidence.columns:
+
+        excel_evidence["dimensions_considered"] = (
+            excel_evidence["dimensions_considered"].map(
+                present_dimensions
+            )
+        )
+
+    # Keep machine-readable metadata in the Forecasts worksheet.
+    # It will be hidden in Excel, not deleted.
+    for column in (
+        "_aggregate_dimensions",
+        "_candidate_dimensions",
+        "_group_dimensions",
+    ):
+        if column in excel_forecasts.columns:
+            excel_forecasts[column] = excel_forecasts[column].map(
+                lambda value: json.dumps(
+                    list(value)
+                    if isinstance(value, (list, tuple, set))
+                    else [],
+                    ensure_ascii=False,
+                )
+            )
+    
     with pd.ExcelWriter(FORECAST_OUTPUT, engine="openpyxl") as writer:
-        summary.to_excel(writer, sheet_name="Forecast_Summary", index=False)
-        forecasts.to_excel(writer, sheet_name="Forecasts", index=False)
-        evidence.to_excel(writer, sheet_name="Forecast_Evidence", index=False)
-        temporal.to_excel(writer, sheet_name="Temporal_Evidence", index=False)
+
+        summary.to_excel(
+        writer,
+        sheet_name="Forecast_Summary",
+        index=False,
+        )
+
+        _serialize_nested_cells(
+            excel_forecasts,
+            preserve_columns=set(internal_columns),
+        ).to_excel(
+            writer,
+            sheet_name="Forecasts",
+            index=False,
+        )
+
+        _serialize_nested_cells(
+            excel_evidence,
+        ).to_excel(
+            writer,
+            sheet_name="Forecast_Evidence",
+            index=False,
+        )
+
+        temporal.to_excel(
+            writer,
+            sheet_name="Temporal_Evidence",
+            index=False,
+        )
+        
+        # Document the meaning of dimension-status values.
+        dimension_status = pd.DataFrame(
+            dimension_status_definitions,
+            columns=[
+                "Status",
+                "Meaning",
+                "Interpretation",
+            ],
+        )
+
+        dimension_status.to_excel(
+            writer,
+            sheet_name="Dimension_Status",
+            index=False,
+        )
+
+    # Hide internal metadata columns without deleting them.
+    from openpyxl import load_workbook
+
+    forecast_workbook = load_workbook(FORECAST_OUTPUT)
+
+    if "Forecasts" in forecast_workbook.sheetnames:
+        forecast_sheet = forecast_workbook["Forecasts"]
+
+        for cell in forecast_sheet[1]:
+            if str(cell.value) in internal_columns:
+                forecast_sheet.column_dimensions[
+                    cell.column_letter
+                ].hidden = True
+
+    forecast_workbook.save(FORECAST_OUTPUT)
+    forecast_workbook.close()    
+
     _write_json(FORECAST_JSON, {
         "input": str(input_path),
         "summary": summary.to_dict(orient="records"),

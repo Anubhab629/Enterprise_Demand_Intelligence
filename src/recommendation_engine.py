@@ -1,4 +1,4 @@
-"""
+﻿"""
 Enterprise Demand Intelligence Platform
 GENERIC DATASET-DRIVEN RECOMMENDATION ENGINE
 
@@ -149,33 +149,69 @@ FORECAST_SCHEMA = {
     "RecentVsBaselineChangePct", "ForecastConfidence",
 }
 FORECAST_META = {
-    "table", "time_column", "value_column", "ForecastStart", "ForecastEnd",
-    "HistoryPoints", "RecentAverage", "BaselineAverage", "ForecastAverage",
-    "ForecastTotal", "LowerForecastTotal", "UpperForecastTotal", "Volatility",
-    "CoefficientOfVariation", "RecentVsBaselineChangePct", "ForecastConfidence",
-    "FrequencyEvidence", "ForecastPoints", "ForecastHorizonDays", "candidate_score",
+    "table",
+    "time_column",
+    "value_column",
+    "ForecastStart",
+    "ForecastEnd",
+    "HistoryPoints",
+    "RecentAverage",
+    "BaselineAverage",
+    "ForecastAverage",
+    "ForecastTotal",
+    "LowerForecastTotal",
+    "UpperForecastTotal",
+    "Volatility",
+    "CoefficientOfVariation",
+    "RecentVsBaselineChangePct",
+    "ForecastConfidence",
+    "FrequencyEvidence",
+    "ForecastPoints",
+    "ForecastHorizonDays",
+    "candidate_score",
+    "DemandTrend",
+    "_is_aggregate",
+    "_aggregate_dimensions",
+    "_candidate_dimensions",
+    "_group_dimensions",
 }
 
 
 def _safe(value: Any) -> Any:
+    """Recursively convert values to JSON-safe primitives."""
     if value is None:
         return None
+
+    if isinstance(value, dict):
+        return {
+            str(key): _safe(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, (list, tuple, set)):
+        return [_safe(item) for item in value]
+
     if isinstance(value, (str, int, bool)):
         return value
+
     if isinstance(value, float):
         return value if math.isfinite(value) else None
+
     if isinstance(value, pd.Timestamp):
         return value.isoformat()
+
     if isinstance(value, pd.Timedelta):
         return value.total_seconds()
+
     try:
         if pd.isna(value):
             return None
     except (TypeError, ValueError):
         pass
+
     try:
-        return value.item()
-    except (AttributeError, ValueError):
+        return _safe(value.item())
+    except (AttributeError, ValueError, TypeError):
         return str(value)
 
 
@@ -224,70 +260,156 @@ def _configured_path(name: str) -> Path | None:
     return _existing_file(path)
 
 
+
+def _latest_compatible_run_workbooks() -> tuple[Path, Path] | None:
+    """
+    Find analysis and forecast workbooks from the same latest
+    compatible pipeline run.
+    """
+    runs_directory = OUTPUT_DIR / "runs"
+
+    if not runs_directory.is_dir():
+        return None
+
+    run_output_directories = sorted(
+        (
+            path
+            for path in runs_directory.glob("run_*/output")
+            if path.is_dir()
+        ),
+        key=lambda path: path.parent.name,
+        reverse=True,
+    )
+
+    for run_output_directory in run_output_directories:
+        analysis_path = (
+            run_output_directory / "analysis_results.xlsx"
+        )
+        forecast_path = (
+            run_output_directory / "forecast_results.xlsx"
+        )
+
+        if not analysis_path.is_file() or not forecast_path.is_file():
+            continue
+
+        try:
+            analysis_headers = read_workbook_headers(analysis_path)
+            forecast_headers = read_workbook_headers(forecast_path)
+        except Exception:
+            continue
+
+        analysis_compatible = any(
+            SIGNAL_SCHEMA.issubset(set(map(str, columns)))
+            or CANDIDATE_SCHEMA.issubset(set(map(str, columns)))
+            for columns in analysis_headers.values()
+        )
+
+        forecast_compatible = any(
+            FORECAST_SCHEMA.issubset(set(map(str, columns)))
+            for columns in forecast_headers.values()
+        )
+
+        if analysis_compatible and forecast_compatible:
+            return analysis_path, forecast_path
+
+    return None
+
+
 def resolve_analysis_workbook() -> Path:
     canonical = _existing_file(ANALYSIS_OUTPUT_FILE)
+
     if canonical is not None:
         return canonical
 
-    for name in ("ANALYSIS_RESULTS_WORKBOOK", "ANALYTICAL_RESULTS_WORKBOOK"):
+    for name in (
+        "ANALYSIS_RESULTS_WORKBOOK",
+        "ANALYTICAL_RESULTS_WORKBOOK",
+    ):
         configured = _configured_path(name)
+
         if configured is not None:
             return configured
 
-    candidates = sorted(
-        [p for p in OUTPUT_DIR.glob("*.xlsx") if p.is_file()],
-        key=lambda p: p.stat().st_mtime,
-        reverse=True,
-    )
-    for path in candidates[:MAX_INPUT_FILES_TO_CHECK]:
-        try:
-            headers = read_workbook_headers(path)
-        except Exception:
-            continue
-        if any(
-            SIGNAL_SCHEMA.issubset(set(map(str, cols)))
-            or CANDIDATE_SCHEMA.issubset(set(map(str, cols)))
-            for cols in headers.values()
-        ):
-            return path
+    run_workbooks = _latest_compatible_run_workbooks()
+
+    if run_workbooks is not None:
+        return run_workbooks[0]
 
     raise FileNotFoundError(
-        "No compatible analytical-results workbook was found. "
-        "Run the analytical stage first."
+        "No compatible analysis and forecast workbooks "
+        "were found together in a pipeline run. "
+        "Check the run output directory."
     )
 
 
 def resolve_forecast_workbook() -> Path:
     canonical = _existing_file(FORECAST_OUTPUT_FILE)
+
     if canonical is not None:
         return canonical
 
-    for name in ("FORECAST_RESULTS_WORKBOOK", "FORECAST_WORKBOOK"):
+    for name in (
+        "FORECAST_RESULTS_WORKBOOK",
+        "FORECAST_WORKBOOK",
+    ):
+        configured = _configured_path(name)
+
+        if configured is not None:
+            return configured
+
+    run_workbooks = _latest_compatible_run_workbooks()
+
+    if run_workbooks is not None:
+        return run_workbooks[1]
+
+    raise FileNotFoundError(
+        "No compatible analysis and forecast workbooks "
+        "were found together in a pipeline run. "
+        "Check the run output directory."
+    )
+
+
+def resolve_analytical_dataset_workbook(
+    analysis_path: Path | None = None,
+    forecast_path: Path | None = None,
+) -> Path | None:
+    """Find the analytical dataset artifact without assuming its table schema."""
+    for name in (
+        "ANALYTICAL_DATASET_WORKBOOK",
+        "ANALYTICAL_DATASET_FILE",
+        "ANALYTICAL_WORKBOOK",
+    ):
         configured = _configured_path(name)
         if configured is not None:
             return configured
 
-    candidates = sorted(
-        [p for p in OUTPUT_DIR.glob("*.xlsx") if p.is_file()],
-        key=lambda p: p.stat().st_mtime,
-        reverse=True,
-    )
-    for path in candidates[:MAX_INPUT_FILES_TO_CHECK]:
+    candidates = []
+
+    for source_path in (forecast_path, analysis_path):
+        if source_path is not None:
+            candidates.append(
+                source_path.parent / "analytical_dataset.xlsx"
+            )
+
+    candidates.append(OUTPUT_DIR / "analytical_dataset.xlsx")
+
+    seen = set()
+
+    for candidate in candidates:
         try:
-            headers = read_workbook_headers(path)
-        except Exception:
+            candidate = candidate.expanduser().resolve()
+        except (OSError, TypeError, ValueError):
             continue
-        if any(
-            FORECAST_SCHEMA.issubset(set(map(str, cols)))
-            for cols in headers.values()
-        ):
-            return path
 
-    raise FileNotFoundError(
-        "No compatible forecast-results workbook was found. "
-        "Run the forecasting stage first."
-    )
+        if candidate in seen:
+            continue
 
+        seen.add(candidate)
+
+        if candidate.is_file():
+            return candidate
+
+    return None
 
 def resolve_output_workbook() -> Path:
     for name in ("RECOMMENDATION_WORKBOOK", "RECOMMENDATIONS_WORKBOOK"):
@@ -391,24 +513,42 @@ def load_forecast_evidence(
     return headers, forecasts, metadata
 
 
-def normalize_candidates(frame: pd.DataFrame) -> dict[tuple[str, str], float]:
-    if frame.empty or not CANDIDATE_SCHEMA.issubset(set(map(str, frame.columns))):
+def normalize_candidates(
+    frame: pd.DataFrame,
+) -> dict[tuple[str, str, str], float]:
+
+    if frame.empty or not CANDIDATE_SCHEMA.issubset(
+        set(map(str, frame.columns))
+    ):
         return {}
 
     work = frame.copy()
+
     work["candidate_score"] = pd.to_numeric(
         work["candidate_score"], errors="coerce"
     )
+
     work = work.dropna(subset=["candidate_score"])
 
-    result: dict[tuple[str, str], float] = {}
+    result: dict[tuple[str, str, str], float] = {}
+
     for _, row in work.sort_values(
-        "candidate_score", ascending=False, kind="stable"
+        "candidate_score",
+        ascending=False,
+        kind="stable",
     ).iterrows():
-        key = (_text(row["table"]), _text(row["measure_column"]))
-        if not key[0] or not key[1]:
+
+        key = (
+            _text(row["table"]),
+            _text(row["time_column"]),
+            _text(row["measure_column"]),
+        )
+
+        if not all(key):
             continue
+
         result.setdefault(key, _set_score(row["candidate_score"]))
+
     return result
 
 
@@ -430,64 +570,142 @@ def normalize_signals(frame: pd.DataFrame) -> pd.DataFrame:
 
     for column in (
         "target_table",
+        "target_time_column",
         "target_measure_column",
         "signal_table",
+        "signal_time_column",
         "signal_measure_column",
     ):
         work[column] = work[column].astype(str).str.strip()
 
+    required_text_columns = [
+        "target_table",
+        "target_time_column",
+        "target_measure_column",
+        "signal_table",
+        "signal_time_column",
+        "signal_measure_column",
+    ]
+
     work = work[
         work["relationship_strength"].notna()
         & work["directional_agreement"].notna()
-        & work["target_table"].ne("")
-        & work["target_measure_column"].ne("")
-        & work["signal_table"].ne("")
-        & work["signal_measure_column"].ne("")
+        & work[required_text_columns].ne("").all(axis=1)
     ].copy()
 
     return work.reset_index(drop=True)
 
 
+def _forecast_dimension_list(value: Any) -> list[str]:
+    """Read dimension metadata from native or JSON-serialized values."""
+
+    if isinstance(value, (list, tuple, set)):
+        return [str(item) for item in value if item is not None]
+
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except (json.JSONDecodeError, TypeError):
+            return []
+
+        if isinstance(parsed, (list, tuple)):
+            return [str(item) for item in parsed if item is not None]
+
+    return []
+
+
 def normalize_forecasts(frame: pd.DataFrame) -> pd.DataFrame:
-    if frame.empty or not FORECAST_SCHEMA.issubset(set(map(str, frame.columns))):
+    if frame.empty or not FORECAST_SCHEMA.issubset(
+        set(map(str, frame.columns))
+    ):
         return pd.DataFrame()
 
     work = frame.copy()
+
     work["__change"] = pd.to_numeric(
-        work["RecentVsBaselineChangePct"], errors="coerce"
+        work["RecentVsBaselineChangePct"],
+        errors="coerce",
     )
-    work["__avg"] = pd.to_numeric(work["ForecastAverage"], errors="coerce")
+
+    work["__avg"] = pd.to_numeric(
+        work["ForecastAverage"],
+        errors="coerce",
+    )
+
     work["__table"] = work["table"].astype(str).str.strip()
     work["__measure"] = work["value_column"].astype(str).str.strip()
+    work["__time"] = work["time_column"].astype(str).str.strip()
 
     work = work[
         work["__change"].notna()
         & work["__avg"].notna()
         & work["__table"].ne("")
+        & work["__time"].ne("")
         & work["__measure"].ne("")
     ].copy()
 
     rows: list[dict[str, Any]] = []
+
     for _, row in work.iterrows():
+
+        candidate_dimensions = _forecast_dimension_list(
+            row.get("_candidate_dimensions")
+        )
+
+        group_dimensions = _forecast_dimension_list(
+            row.get("_group_dimensions")
+        )
+
+        aggregate_flag = row.get("_is_aggregate")
+
+        if isinstance(aggregate_flag, str):
+            aggregate_flag = aggregate_flag.strip().lower() in {
+                "true",
+                "1",
+                "yes",
+            }
+        elif not isinstance(aggregate_flag, bool):
+            aggregate_flag = None
+
+        # Entity represents the actual dimension values defining this series.
+        entity = {
+            dimension: _safe(row.get(dimension))
+            for dimension in group_dimensions
+            if dimension in row.index
+        }
+
+        # Scope represents the analytical context, not the entity itself.
+        if aggregate_flag is True:
+            forecast_grain = "Overall aggregate"
+        elif aggregate_flag is False:
+            forecast_grain = "Grouped forecast"
+        else:
+            forecast_grain = "Grouping metadata unavailable"
+
         scope = {
-            str(column): _safe(value)
-            for column, value in row.items()
-            if str(column) not in FORECAST_META and not str(column).startswith("__") and _safe(value) is not None
+            "forecast_grain": forecast_grain,
+            "grouping_dimensions": group_dimensions,
+            "candidate_dimensions": candidate_dimensions,
         }
 
         rows.append(
             {
                 "target_table": _text(row["__table"]),
-                "target_time_column": _text(row["time_column"]),
+                "target_time_column": _text(row["__time"]),
                 "target_measure_column": _text(row["__measure"]),
                 "recent_change_pct": _safe(row["__change"]),
                 "forecast_average": _safe(row["__avg"]),
                 "forecast_total": _safe(row.get("ForecastTotal")),
                 "recent_average": _safe(row.get("RecentAverage")),
                 "baseline_average": _safe(row.get("BaselineAverage")),
-                "forecast_confidence": _text(row.get("ForecastConfidence")),
+                "forecast_confidence": _text(
+                    row.get("ForecastConfidence")
+                ),
+                "entity": entity,
                 "scope": scope,
-                "candidate_score": _safe(row.get("candidate_score")),
+                "candidate_score": _safe(
+                    row.get("candidate_score")
+                ),
             }
         )
 
@@ -525,15 +743,18 @@ def signal_support(row: pd.Series) -> float:
 
 def select_signals(
     frame: pd.DataFrame,
-) -> dict[tuple[str, str], list[dict[str, Any]]]:
+) -> dict[tuple[str, str, str], list[dict[str, Any]]]:
+
     if frame.empty:
         return {}
 
     work = normalize_signals(frame)
+
     if work.empty:
         return {}
 
     work["__support"] = work.apply(signal_support, axis=1)
+
     work = work[
         (work["relationship_strength"] >= MIN_SIGNAL_STRENGTH)
         & (work["directional_agreement"] >= MIN_DIRECTIONAL_AGREEMENT)
@@ -545,21 +766,28 @@ def select_signals(
     work = work.sort_values(
         [
             "target_table",
+            "target_time_column",
             "target_measure_column",
             "__support",
             "aligned_observations",
         ],
-        ascending=[True, True, False, False],
+        ascending=[True, True, True, False, False],
         kind="stable",
     )
 
-    result: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    result: dict[
+        tuple[str, str, str],
+        list[dict[str, Any]],
+    ] = {}
 
     for _, row in work.iterrows():
+
         key = (
             _text(row["target_table"]),
+            _text(row["target_time_column"]),
             _text(row["target_measure_column"]),
         )
+
         bucket = result.setdefault(key, [])
 
         if len(bucket) >= MAX_SIGNALS_PER_TARGET:
@@ -660,6 +888,7 @@ def _priority_score(
 
 def _recommendation_payload(
     target_table: str,
+    target_time_column: str,
     target_measure: str,
     scope: dict[str, Any],
     forecast: dict[str, Any] | None,
@@ -677,6 +906,7 @@ def _recommendation_payload(
         "evidence_mode": evidence_mode,
         "target": {
             "table": target_table,
+            "time_column": target_time_column,
             "measure": target_measure,
             "scope": scope,
         },
@@ -1218,6 +1448,10 @@ def _deterministic_recommendation_fallback(
 
     direction = _text(forecast.get("movement_direction")).strip()
     change = _safe(forecast.get("recent_change_pct"))
+    try:
+        change_magnitude = abs(float(change)) if change is not None else None
+    except (TypeError, ValueError):
+        change_magnitude = None
     forecast_average = _safe(forecast.get("forecast_average"))
     confidence = _text(forecast.get("forecast_confidence")).strip()
 
@@ -1242,40 +1476,75 @@ def _deterministic_recommendation_fallback(
         return text if text else "0"
 
     finding_parts: list[str] = []
-    if change is not None and direction in {"increasing", "decreasing", "unchanged"}:
-        finding_parts.append(
-            f"Forecast movement is {direction} at {fmt(change)}%."
-        )
+
+    if change is not None and direction in {
+        "increasing",
+        "decreasing",
+        "unchanged",
+    }:
+        movement_wording = {
+            "increasing": "increasing by",
+            "decreasing": "decreasing by",
+            "unchanged": "remaining unchanged at",
+        }[direction]
+
+        if direction == "unchanged":
+            finding_parts.append(
+                f"Forecast movement is {movement_wording} "
+                f"{fmt(change_magnitude)}%."
+            )
+        else:
+            finding_parts.append(
+                f"Forecast movement is {direction} "
+                f"by {fmt(change_magnitude)}%."
+            )
+
     elif direction:
-        finding_parts.append(f"Forecast movement is {direction}.")
+        finding_parts.append(
+            f"Forecast movement is {direction}."
+        )
 
     if forecast_average is not None:
-        finding_parts.append(f"Forecast average is {fmt(forecast_average)}.")
+        finding_parts.append(
+            f"The average forecast value is {fmt(forecast_average)}."
+        )
+
     if confidence:
-        finding_parts.append(f"Forecast confidence is {confidence}.")
+        finding_parts.append(
+            f"Forecast confidence is {confidence}."
+        )
 
     if signal_count is not None:
+        signal_label = (
+            "signal"
+            if float(signal_count or 0) == 1
+            else "signals"
+        )
         finding_parts.append(
-            f"Supporting signals: {count_text(signal_count)} "
-            f"({count_text(aligned)} aligned, {count_text(opposed)} opposed, "
-            f"{count_text(unresolved)} unresolved)."
+            f"This is supported by {count_text(signal_count)} "
+            f"{signal_label}: "
+            f"{count_text(aligned)} aligned, "
+            f"{count_text(opposed)} opposed, and "
+            f"{count_text(unresolved)} unresolved."
         )
 
     if not finding_parts:
-        finding_parts.append("Available analytical evidence is limited.")
+        finding_parts.append(
+            "Available analytical evidence is limited."
+        )
 
     recommendation_parts: list[str] = []
     if change is not None and direction == "increasing":
         recommendation_parts.append(
-            f"Track the increasing movement of {fmt(change)}% against subsequent observations."
+            f"Track the increasing movement of {fmt(change_magnitude)}% against subsequent observations."
         )
     elif change is not None and direction == "decreasing":
         recommendation_parts.append(
-            f"Track the decreasing movement of {fmt(change)}% against subsequent observations."
+            f"Track the decreasing movement of {fmt(change_magnitude)}% against subsequent observations."
         )
     elif change is not None and direction == "unchanged":
         recommendation_parts.append(
-            f"Continue observing the current movement of {fmt(change)}% for confirmation."
+            f"Continue observing the current movement of {fmt(change_magnitude)}% for confirmation."
         )
     elif direction:
         recommendation_parts.append(
@@ -1452,8 +1721,8 @@ def _generate_ai_recommendations_batch(
 
 def build_recommendations(
     forecasts: pd.DataFrame,
-    signal_groups: dict[tuple[str, str], list[dict[str, Any]]],
-    candidate_scores: dict[tuple[str, str], float],
+    signal_groups: dict[tuple[str, str, str], list[dict[str, Any]]],
+    candidate_scores: dict[tuple[str, str, str], float],
 ) -> pd.DataFrame:
     """
     Build and rank recommendations deterministically, then use AI only as a
@@ -1477,8 +1746,14 @@ def build_recommendations(
 
     for _, row in forecasts.iterrows():
         target_table = _text(row["target_table"])
+        target_time_column = _text(row["target_time_column"])
         target_measure = _text(row["target_measure_column"])
-        key = (target_table, target_measure)
+
+        key = (
+            target_table,
+            target_time_column,
+            target_measure,
+        )
 
         signals = signal_groups.get(key, [])
         candidate_score = candidate_scores.get(
@@ -1495,6 +1770,10 @@ def build_recommendations(
         if not movement_material and not signals:
             continue
 
+        entity = row.get("entity", {})
+        if not isinstance(entity, dict):
+            entity = {}
+
         scope = row.get("scope", {})
         if not isinstance(scope, dict):
             scope = {}
@@ -1506,11 +1785,14 @@ def build_recommendations(
             "forecast_total": _safe(row.get("forecast_total")),
             "recent_average": _safe(row.get("recent_average")),
             "baseline_average": _safe(row.get("baseline_average")),
-            "confidence": _text(row.get("forecast_confidence")),
+            "forecast_confidence": _text(
+                row.get("forecast_confidence")
+            ),
         }
 
         payload = _recommendation_payload(
             target_table=target_table,
+            target_time_column=target_time_column,
             target_measure=target_measure,
             scope=scope,
             forecast=forecast_payload,
@@ -1519,7 +1801,12 @@ def build_recommendations(
         )
 
         dedupe_key = _id(
-            {"target": key, "scope": scope, "payload": payload}
+            {
+                "target": key,
+                "entity": entity,
+                "scope": scope,
+                "payload": payload,
+            }
         )
         if dedupe_key in seen:
             continue
@@ -1538,7 +1825,8 @@ def build_recommendations(
                 ),
                 "source_table": target_table,
                 "source_column": target_measure,
-                "entity": _json(scope),
+                "target_time_column": target_time_column,
+                "entity": _json(entity),
                 "scope": _json(scope),
                 "evidence": _json(payload),
                 "priority_score": score,
@@ -1569,15 +1857,24 @@ def build_recommendations(
 
     candidates = (
         candidates.sort_values(
-            ["priority_score", "supporting_signal_count",
-             "source_table", "source_column"],
-            ascending=[False, False, True, True],
+            [
+                "priority_score",
+                "supporting_signal_count",
+                "source_table",
+                "target_time_column",
+                "source_column",
+            ],
+            ascending=[False, False, True, True, True],
             kind="stable",
         )
         .drop_duplicates(
             subset=[
-                "recommendation_type", "source_table", "source_column",
-                "entity", "evidence",
+                "recommendation_type",
+                "source_table",
+                "target_time_column",
+                "source_column",
+                "entity",
+                "evidence",
             ],
             keep="first",
         )
@@ -1688,6 +1985,7 @@ def build_recommendations(
                 "recommendation_type": candidate["recommendation_type"],
                 "source_table": candidate["source_table"],
                 "source_column": candidate["source_column"],
+                "target_time_column": candidate["target_time_column"],
                 "entity": candidate["entity"],
                 "scope": candidate["scope"],
                 "finding": generated["finding"],
@@ -1720,6 +2018,7 @@ def build_recommendations(
                     "recommendation_type": row["recommendation_type"],
                     "source_table": row["source_table"],
                     "source_column": row["source_column"],
+                    "target_time_column": row["target_time_column"],
                     "entity": row["entity"],
                     "evidence": row["evidence"],
                 }
@@ -1739,6 +2038,7 @@ def create_empty_result() -> pd.DataFrame:
             "recommendation_type",
             "source_table",
             "source_column",
+            "target_time_column",
             "entity",
             "scope",
             "finding",
@@ -1841,6 +2141,586 @@ def create_evidence_summary(
     ).reset_index(drop=True)
 
 
+def _humanize_scope_key(value: Any) -> str:
+    """Convert technical identifiers into readable presentation labels."""
+    text = str(value).strip()
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    text = text.replace("_", " ").replace("-", " ")
+    text = " ".join(text.split()).title()
+
+    # Common technical abbreviations, not dataset-specific aliases.
+    replacements = {
+        " Id": " ID",
+        " Pct": " (%)",
+        " Inr": " (INR)",
+        " Usd": " (USD)",
+        " Gbp": " (GBP)",
+        " Eur": " (EUR)",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
+    return text
+
+
+def _format_scope_value(value: Any) -> Any:
+    """Format primitive values without assigning unsupported meanings."""
+    if value is None:
+        return None
+
+    if isinstance(value, dict):
+        return "; ".join(
+            f"{_humanize_scope_key(key)}: {_format_scope_value(item)}"
+            for key, item in value.items()
+            if item is not None
+        )
+
+    if isinstance(value, (list, tuple, set)):
+        return ", ".join(
+            str(_format_scope_value(item))
+            for item in value
+            if item is not None
+        )
+
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+
+    return str(value)
+
+
+def _parse_recommendation_json(value: Any) -> Any:
+    if isinstance(value, (dict, list)):
+        return value
+
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return None
+
+        try:
+            return json.loads(stripped)
+        except (json.JSONDecodeError, TypeError):
+            return value
+
+    return value
+
+def _normalized_header_token(value: Any) -> str:
+    return re.sub(
+        r"[^a-z0-9]+",
+        "_",
+        str(value).strip().lower(),
+    ).strip("_")
+
+
+def _entity_key_stem(value: Any) -> str:
+    parts = _normalized_header_token(value).split("_")
+
+    if parts and parts[-1] in {"id", "key", "code"}:
+        parts = parts[:-1]
+
+    return "_".join(parts)
+
+
+def load_entity_name_mappings(
+    analytical_path: Path | None,
+) -> dict[str, dict[str, str]]:
+    """
+    Discover unambiguous key-to-name mappings dynamically.
+
+    Requires:
+    - An exact matching entity-key column.
+    - One same-stem descriptive column.
+    - Complete, unique keys.
+    - Complete descriptive labels.
+    - No conflicting mappings across sheets.
+    """
+    if analytical_path is None or not analytical_path.is_file():
+        return {}
+
+    discovered = {}
+
+    try:
+        workbook = pd.ExcelFile(
+            analytical_path,
+            engine="openpyxl",
+        )
+    except Exception:
+        return {}
+
+    for sheet_name in workbook.sheet_names:
+        try:
+            headers = list(
+                pd.read_excel(
+                    workbook,
+                    sheet_name=sheet_name,
+                    nrows=0,
+                ).columns
+            )
+        except Exception:
+            continue
+
+        normalized_headers = {
+            column: _normalized_header_token(column)
+            for column in headers
+        }
+
+        for key_column, normalized_key in normalized_headers.items():
+            if not normalized_key:
+                continue
+
+            stem = _entity_key_stem(key_column)
+
+            if not stem:
+                continue
+
+            label_candidates = [
+                column
+                for column, normalized_label
+                in normalized_headers.items()
+                if column != key_column
+                and normalized_label.startswith(stem + "_")
+                and normalized_label[len(stem) + 1:] in {
+                    "name",
+                    "label",
+                    "title",
+                    "display_name",
+                }
+            ]
+
+            # Do not guess when multiple possible descriptive columns exist.
+            if len(label_candidates) != 1:
+                continue
+
+            label_column = label_candidates[0]
+
+            try:
+                frame = pd.read_excel(
+                    workbook,
+                    sheet_name=sheet_name,
+                    usecols=[key_column, label_column],
+                )
+            except Exception:
+                continue
+
+            if frame.empty:
+                continue
+
+            keys = frame[key_column].map(
+                lambda item: (
+                    ""
+                    if _safe(item) is None
+                    else str(_safe(item)).strip()
+                )
+            )
+
+            labels = frame[label_column].map(_text)
+
+            # Reject incomplete or duplicate lookup records.
+            if (
+                keys.eq("").any()
+                or labels.eq("").any()
+                or keys.duplicated().any()
+            ):
+                continue
+
+            mapping = dict(zip(keys, labels))
+
+            if mapping:
+                discovered.setdefault(
+                    normalized_key,
+                    [],
+                ).append(mapping)
+
+    resolved = {}
+
+    for key, candidates in discovered.items():
+        first = candidates[0]
+
+        # Conflicting mappings are ambiguous; reject them.
+        if all(candidate == first for candidate in candidates[1:]):
+            resolved[key] = first
+
+    return resolved
+
+def _format_entity_display(
+    value: Any,
+    entity_name_mappings: dict[str, dict[str, str]] | None = None,
+) -> str | None:
+    """Describe entity context using runtime values and available mappings."""
+    entity = _parse_recommendation_json(value)
+
+    if entity is None:
+        return None
+
+    if not isinstance(entity, dict):
+        return _format_scope_value(entity)
+
+    if not entity:
+        return "The recommendation applies across the available records."
+
+    mappings = entity_name_mappings or {}
+    descriptions: list[str] = []
+
+    for raw_key, raw_value in sorted(
+        entity.items(),
+        key=lambda item: str(item[0]).lower(),
+    ):
+        if raw_value is None or not str(raw_value).strip():
+            continue
+
+        key = str(raw_key).strip()
+        normalized_key = _normalized_header_token(key)
+        mapping_key = re.sub(
+            r"_(id|code|key)$", "", normalized_key
+        )
+
+        value_text = str(raw_value).strip()
+
+        # Use only mappings discovered unambiguously from the dataset.
+        mapping = mappings.get(
+            normalized_key,
+            mappings.get(mapping_key, {}),
+        )
+
+        if value_text in mapping:
+            value_text = str(mapping[value_text]).strip()
+
+        if normalized_key.endswith(("_id", "_code", "_key")):
+            subject = re.sub(
+                r"_(id|code|key)$", "", key, flags=re.IGNORECASE
+            )
+            subject = _humanize_scope_key(subject).lower()
+
+            descriptions.append(
+                f"The recommendation applies to {subject} {value_text}."
+            )
+
+        elif normalized_key.endswith("_status"):
+            subject = _humanize_scope_key(
+                key[:-7]
+            ).lower()
+
+            descriptions.append(
+                f"The recommendation applies to records with "
+                f"{subject} status '{value_text}'."
+            )
+
+        elif normalized_key.endswith("_activity"):
+            subject = _humanize_scope_key(
+                key[:-9]
+            ).lower()
+
+            descriptions.append(
+                f"The recommendation concerns {subject} activity "
+                f"classified as '{value_text}'."
+            )
+
+        else:
+            label = _humanize_scope_key(key).lower()
+
+            descriptions.append(
+                f"The recommendation applies to records where "
+                f"{label} is '{value_text}'."
+            )
+
+    return " ".join(descriptions) if descriptions else (
+        "The recommendation applies across the available records."
+    )
+
+
+def _format_scope_display(
+    value: Any,
+    entity_name_mappings: dict[str, dict[str, str]] | None = None,
+) -> str | None:
+    """Explain forecast grain using its actual grouping metadata."""
+    del entity_name_mappings
+
+    scope = _parse_recommendation_json(value)
+
+    if scope is None:
+        return None
+
+    if not isinstance(scope, dict):
+        return _format_scope_value(scope)
+
+    dimensions = scope.get("grouping_dimensions")
+
+    if isinstance(dimensions, str):
+        dimensions = _forecast_dimension_list(dimensions)
+
+    if not isinstance(dimensions, (list, tuple, set)):
+        dimensions = []
+
+    readable_dimensions = []
+
+    for item in dimensions:
+        if item is None or not str(item).strip():
+            continue
+
+        # Remove technical identifier suffixes for display only.
+        clean_dimension = re.sub(
+            r"_(id|code|key)$",
+            "",
+            str(item).strip(),
+            flags=re.IGNORECASE,
+        )
+
+        readable_dimensions.append(
+            _humanize_scope_key(clean_dimension).lower()
+        )
+
+    grain = str(
+        scope.get("forecast_grain") or ""
+    ).strip().lower()
+
+    if grain == "overall aggregate":
+        return (
+            "The forecast represents the overall aggregate "
+            "across the available records."
+        )
+
+    if grain == "grouped forecast":
+        if not readable_dimensions:
+            return (
+                "The forecast is generated for grouped records, "
+                "but the grouping dimensions are unavailable."
+            )
+
+        if len(readable_dimensions) == 1:
+            dimension_text = readable_dimensions[0]
+        else:
+            dimension_text = (
+                ", ".join(readable_dimensions[:-1])
+                + " and "
+                + readable_dimensions[-1]
+            )
+
+        return (
+            f"The forecast is grouped by {dimension_text}."
+        )
+
+    if readable_dimensions:
+        if len(readable_dimensions) == 1:
+            dimension_text = readable_dimensions[0]
+        else:
+            dimension_text = (
+                ", ".join(readable_dimensions[:-1])
+                + " and "
+                + readable_dimensions[-1]
+            )
+
+        return (
+            f"The forecast uses {dimension_text} "
+            "as its grouping dimensions."
+        )
+
+    return (
+        "The forecast grain could not be determined "
+        "from the available grouping metadata."
+    )
+
+def _format_evidence_display(value: Any) -> str | None:
+    """Summarize supporting evidence without repeating the finding."""
+    evidence = _parse_recommendation_json(value)
+
+    if evidence is None:
+        return None
+
+    if not isinstance(evidence, dict):
+        return _format_scope_value(evidence)
+
+    parts: list[str] = []
+
+    target = evidence.get("target")
+
+    if isinstance(target, dict):
+        table = target.get("table")
+        measure = target.get("measure")
+        time_column = target.get("time_column")
+
+        if table and measure:
+            description = (
+                f"The analysis evaluates "
+                f"{_humanize_scope_key(measure)} "
+                f"from {_humanize_scope_key(table)}"
+            )
+
+            if time_column:
+                description += (
+                    f" over {_humanize_scope_key(time_column)}"
+                )
+
+            parts.append(description + ".")
+
+    signals = evidence.get("supporting_signals")
+
+    if isinstance(signals, list):
+        valid_signals = [
+            signal for signal in signals
+            if isinstance(signal, dict)
+        ]
+
+        if valid_signals:
+            count = len(valid_signals)
+            label = "signal" if count == 1 else "signals"
+
+            parts.append(
+                f"The analysis includes {count} supporting {label}."
+            )
+
+            def numeric_value(signal: dict, field: str) -> float:
+                try:
+                    result = float(signal.get(field, 0) or 0)
+                    return result if math.isfinite(result) else 0.0
+                except (TypeError, ValueError):
+                    return 0.0
+
+            strongest = max(
+                valid_signals,
+                key=lambda signal: numeric_value(
+                    signal, "relationship_strength"
+                ),
+            )
+
+            signal_measure = strongest.get("signal_measure_column")
+            signal_table = strongest.get("signal_table")
+            direction = str(
+                strongest.get("direction") or ""
+            ).strip().lower()
+
+            description = "The strongest supporting relationship"
+
+            if signal_measure and signal_table:
+                description += (
+                    f" involves {_humanize_scope_key(signal_measure)} "
+                    f"from {_humanize_scope_key(signal_table)}"
+                )
+
+            if direction in {
+                "same", "aligned", "positive",
+                "increasing", "decreasing",
+            }:
+                description += " and has an aligned direction"
+            elif direction in {"opposite", "opposed", "negative"}:
+                description += " and has an opposing direction"
+
+            relationship = numeric_value(
+                strongest, "relationship_strength"
+            )
+            agreement = numeric_value(
+                strongest, "directional_agreement"
+            )
+            observations = numeric_value(
+                strongest, "aligned_observations"
+            )
+
+            details = []
+
+            details.append(
+                f"relationship strength {relationship:.2f}"
+            )
+            details.append(
+                f"directional agreement {agreement:.2f}"
+            )
+            details.append(
+                f"{observations:,.0f} aligned observations"
+            )
+
+            description += " (" + ", ".join(details) + ")."
+            parts.append(description)
+
+    return " ".join(parts) if parts else (
+        "Structured supporting evidence is available, "
+        "but its details could not be summarized."
+    )
+
+
+def _format_recommendation_type(value: Any) -> str | None:
+    if value is None:
+        return None
+
+    labels = {
+        "demand_evidence_fusion": "Demand Evidence Fusion",
+        "forecast_evidence": "Forecast Evidence",
+    }
+
+    key = str(value).strip().lower()
+    return labels.get(key, _humanize_scope_key(value))
+
+
+def _format_recommendation_excel(
+    recommendations: pd.DataFrame,
+    entity_name_mappings: dict[str, dict[str, str]] | None = None,
+) -> pd.DataFrame:
+    """
+    Add reader-facing display columns while preserving machine fields.
+    """
+    result = recommendations.copy()
+
+    if "recommendation_type" in result.columns:
+        result["recommendation_type_display"] = (
+            result["recommendation_type"].map(
+                _format_recommendation_type
+            )
+        )
+
+    if "source_table" in result.columns:
+        result["source_table_display"] = (
+            result["source_table"].map(
+                lambda value: (
+                    _humanize_scope_key(value)
+                    if value is not None
+                    else None
+                )
+            )
+        )
+
+    if "source_column" in result.columns:
+        result["source_column_display"] = (
+            result["source_column"].map(
+                lambda value: (
+                    _humanize_scope_key(value)
+                    if value is not None
+                    else None
+                )
+            )
+        )
+
+    if "target_time_column" in result.columns:
+        result["target_time_column_display"] = (
+            result["target_time_column"].map(
+                lambda value: (
+                    _humanize_scope_key(value)
+                    if value is not None
+                    else None
+                )
+            )
+        )
+
+    if "entity" in result.columns:
+        result["entity_display"] = result["entity"].map(
+            lambda value: _format_entity_display(
+                value,
+                entity_name_mappings=entity_name_mappings,
+            )
+        )
+
+    if "scope" in result.columns:
+        result["scope_display"] = result["scope"].map(
+            lambda value: _format_scope_display(
+                value,
+                entity_name_mappings=entity_name_mappings,
+            )
+        )
+
+    if "evidence" in result.columns:
+        result["evidence_display"] = result["evidence"].map(
+            _format_evidence_display
+        )
+
+    return result
+
+
 def _format_workbook(path: Path) -> None:
     from copy import copy
     from openpyxl import load_workbook
@@ -1873,16 +2753,52 @@ def _format_workbook(path: Path) -> None:
                 font = copy(cell.font)
                 font.bold = True
                 cell.font = font
+        if "Recommendations" in workbook.sheetnames:
+            worksheet = workbook["Recommendations"]
+
+            header_columns = {
+                str(cell.value): cell.column
+                for cell in worksheet[1]
+                if cell.value is not None
+            }
+
+            for column_name in (
+                "entity",
+                "scope",
+                "evidence",
+            ):
+                column_index = header_columns.get(column_name)
+
+                if column_index is not None:
+                    column_letter = worksheet.cell(
+                        row=1,
+                        column=column_index,
+                    ).column_letter
+
+                    worksheet.column_dimensions[
+                        column_letter
+                    ].hidden = True
 
     workbook.save(path)
 
 
-def write_outputs(recommendations: pd.DataFrame) -> Path:
+def write_outputs(
+    recommendations: pd.DataFrame,
+    analytical_path: Path | None = None,
+) -> Path:
     output = resolve_output_workbook()
     output.parent.mkdir(parents=True, exist_ok=True)
 
     summary = create_summary(recommendations)
     evidence = create_evidence_summary(recommendations)
+    entity_name_mappings = load_entity_name_mappings(
+    analytical_path
+)
+
+    excel_recommendations = _format_recommendation_excel(
+        recommendations,
+        entity_name_mappings=entity_name_mappings,
+    )
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         summary.to_excel(
@@ -1890,7 +2806,7 @@ def write_outputs(recommendations: pd.DataFrame) -> Path:
             sheet_name="Summary",
             index=False,
         )
-        recommendations.to_excel(
+        excel_recommendations.to_excel(
             writer,
             sheet_name="Recommendations",
             index=False,
@@ -2020,10 +2936,18 @@ def run_recommendation_engine() -> None:
     stage_started = time.perf_counter()
     analysis_path = resolve_analysis_workbook()
     forecast_path = resolve_forecast_workbook()
+    analytical_path = resolve_analytical_dataset_workbook(
+        analysis_path=analysis_path,
+        forecast_path=forecast_path,
+    )
     stage_times["resolve_inputs_seconds"] = time.perf_counter() - stage_started
 
     print(f"Analysis input: {analysis_path}")
     print(f"Forecast input: {forecast_path}")
+    print(
+        "Analytical dataset lookup:",
+        analytical_path if analytical_path is not None else "NOT AVAILABLE",
+    )
 
     stage_started = time.perf_counter()
     (
@@ -2077,10 +3001,13 @@ def run_recommendation_engine() -> None:
         )
 
     print(f"Demand/forecast evidence records: {len(recommendations):,}")
-    print(f"AI-generated recommendation records: {generated_count:,}")
+    print(f"Recommendation records generated: {generated_count:,}")
 
     stage_started = time.perf_counter()
-    output = write_outputs(recommendations)
+    output = write_outputs(
+        recommendations,
+        analytical_path=analytical_path,
+    )
     stage_times["write_excel_seconds"] = time.perf_counter() - stage_started
 
     stage_started = time.perf_counter()
@@ -2131,16 +3058,33 @@ def run_recommendation_engine() -> None:
             print(f"{name}: {seconds:.2f}s")
 
     if LAST_AI_STATS:
-        print(
-            "AI:",
-            f"{LAST_AI_STATS.get('successful', 0)}/"
-            f"{LAST_AI_STATS.get('total', 0)} successful",
-            f"| elapsed {LAST_AI_STATS.get('elapsed_seconds', 0):.2f}s",
-            f"| batch size {LAST_AI_STATS.get('batch_size', 0)}",
+        generation_mode = LAST_AI_STATS.get(
+            "generation_mode",
+            "UNKNOWN",
         )
-        status_counts = LAST_AI_STATS.get("status_counts", {})
-        if status_counts:
-            print("AI status counts:", json.dumps(status_counts, sort_keys=True))
+    
+        if generation_mode == "DETERMINISTIC_EVIDENCE_FALLBACK":
+            print(
+                "Recommendation generation: "
+                f"{LAST_AI_STATS.get('successful', 0)}/"
+                f"{LAST_AI_STATS.get('total', 0)} completed "
+                "| mode: deterministic Python evidence fallback"
+            )
+        else:
+            print(
+                "Recommendation generation: "
+                f"{LAST_AI_STATS.get('successful', 0)}/"
+                f"{LAST_AI_STATS.get('total', 0)} completed "
+                f"| mode: {generation_mode}"
+            )
+    
+        if LAST_AI_STATS.get("enrichment_enabled"):
+            print(
+                "Optional AI enrichment:",
+                f"{LAST_AI_STATS.get('enrichment_successful', 0)} successful",
+                "|",
+                f"{LAST_AI_STATS.get('enrichment_failed', 0)} not enriched",
+            )
 
     print("=" * 72)
 

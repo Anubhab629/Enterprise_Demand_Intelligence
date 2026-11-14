@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sys
 import warnings
 from pathlib import Path
@@ -46,20 +47,28 @@ if str(PROJECT_ROOT) not in sys.path:
 import config
 
 
+# Optional validation overrides. Normal execution continues to use config.py.
 OUTPUT_DATA_DIRECTORY = Path(
-    getattr(
-        config,
-        "OUTPUT_DATA_DIRECTORY",
-        PROJECT_ROOT / "data" / "output",
+    os.getenv(
+        "EDI_ANALYSIS_OUTPUT_DIRECTORY",
+        str(
+            getattr(
+                config,
+                "OUTPUT_DATA_DIRECTORY",
+                PROJECT_ROOT / "data" / "output",
+            )
+        ),
     )
 ).expanduser().resolve()
 
 ANALYSIS_WORKBOOK = (
     OUTPUT_DATA_DIRECTORY / "analysis_results.xlsx"
 )
+
 ANALYSIS_DATASET_JSON = (
     OUTPUT_DATA_DIRECTORY / "analysis_results.json"
 )
+
 ANALYSIS_REPORT_JSON = (
     OUTPUT_DATA_DIRECTORY / "analysis_report.json"
 )
@@ -218,17 +227,22 @@ def safe_float(
     return result
 
 
-def safe_json_value(
-    value: Any,
-) -> Any:
+def safe_json_value(value: Any) -> Any:
+    """Convert values recursively into JSON-safe Python primitives."""
     if value is None:
         return None
 
-    try:
-        if pd.isna(value):
-            return None
-    except (TypeError, ValueError):
-        pass
+    if isinstance(value, dict):
+        return {
+            str(key): safe_json_value(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, (list, tuple, set)):
+        return [
+            safe_json_value(item)
+            for item in value
+        ]
 
     if isinstance(value, np.integer):
         return int(value)
@@ -246,11 +260,17 @@ def safe_json_value(
     if isinstance(value, pd.Timedelta):
         return str(value)
 
+    if isinstance(value, float):
+        return value if math.isfinite(value) else None
+
     if isinstance(value, (str, int, bool)):
         return value
 
-    if isinstance(value, float):
-        return value if math.isfinite(value) else None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
 
     return str(value)
 
@@ -273,6 +293,48 @@ def safe_output_dataframe(
         None,
     )
 
+def normalize_excel_value(value: Any) -> Any:
+    """
+    Convert nested values into readable scalar text for Excel.
+    Structured JSON remains preserved separately in the JSON artifact.
+    """
+    value = safe_json_value(value)
+
+    if value is None:
+        return None
+
+    if isinstance(value, dict):
+        parts = [
+            f"{key}: {normalize_excel_value(item)}"
+            for key, item in value.items()
+        ]
+        return "; ".join(parts)
+
+    if isinstance(value, list):
+        return "; ".join(
+            str(normalize_excel_value(item))
+            for item in value
+            if item is not None
+        )
+
+    return value
+
+
+def prepare_excel_dataframe(
+    dataframe: pd.DataFrame | None,
+) -> pd.DataFrame:
+    """Prepare an Excel-safe copy without changing the source DataFrame."""
+    result = safe_output_dataframe(dataframe)
+
+    if result.empty:
+        return result
+
+    for column in result.columns:
+        result[column] = result[column].map(
+            normalize_excel_value
+        )
+
+    return result
 
 # ============================================================
 # STRUCTURAL TYPE DISCOVERY
@@ -629,9 +691,64 @@ def resolve_analytical_source() -> Path:
     """
     Resolve the pipeline's generic analytical artifact.
 
-    This filename is a technical pipeline artifact, not a business
-    dataset/schema assumption.
+    An explicit source override is supported for isolated validation runs.
     """
+    source_override = os.getenv(
+        "EDI_ANALYTICAL_SOURCE"
+    )
+
+    if source_override:
+        source = Path(
+            source_override
+        ).expanduser().resolve()
+
+    # Fallback: discover analytical datasets in historical run outputs.
+    runs_directory = OUTPUT_DATA_DIRECTORY / "runs"
+
+    if runs_directory.is_dir():
+        historical_candidates = sorted(
+            (
+                path
+                for path in runs_directory.glob(
+                    "*/output/analytical_dataset.*"
+                )
+                if path.is_file()
+                and path.suffix.lower() in {
+                    ".json",
+                    ".xlsx",
+                    ".xls",
+                    ".parquet",
+                }
+            ),
+            key=lambda path: (
+                path.stat().st_mtime_ns,
+                str(path).lower(),
+            ),
+            reverse=True,
+        )
+
+        if historical_candidates:
+            return historical_candidates[0]
+
+        if not source.is_file():
+            raise FileNotFoundError(
+                "Configured analytical source override does not exist: "
+                f"{source}"
+            )
+
+        if source.suffix.lower() not in {
+            ".json",
+            ".xlsx",
+            ".xls",
+            ".parquet",
+        }:
+            raise ValueError(
+                "Unsupported analytical source override format: "
+                f"{source.suffix}"
+            )
+
+        return source
+
     if not OUTPUT_DATA_DIRECTORY.exists():
         raise FileNotFoundError(
             "Configured analytical output directory does not exist."
@@ -1791,6 +1908,11 @@ def analyse_changes(
                         "absolute_change": safe_float(
                             record["__change"]
                         ),
+                        "change_status": (
+                            "First observation - no previous period"
+                            if pd.isna(record["__change"])
+                            else "Calculated from previous period"
+                        ),
                     }
                 )
 
@@ -2365,60 +2487,41 @@ def discover_demand_series_candidates(
     feature_provenance: dict[str, dict[str, dict[str, Any]]] | None = None,
 ) -> pd.DataFrame:
     """
-    Discover temporal numeric series suitable for demand-side analysis.
+    Discover structurally suitable temporal numeric series.
 
-    IMPORTANT:
-    This function does NOT declare a business meaning. It only records
-    structural evidence that a temporal numeric series exists and has
-    enough variation and observations to participate in demand analysis.
+    Every eligible temporal dimension is evaluated independently.
+    This function records structural evidence only; it does not assign
+    business meaning to any table, column, or measure.
     """
-    rows: list[
-        dict[str, Any]
-    ] = []
+    rows: list[dict[str, Any]] = []
 
     for table_name, dataframe in tables.items():
         if dataframe.empty:
             continue
 
-        temporal_columns = select_temporal_columns(
-            dataframe
-        )
+        temporal_columns = select_temporal_columns(dataframe)
+        numeric_columns = select_numeric_columns(dataframe)
 
-        numeric_columns = select_numeric_columns(
-            dataframe
-        )
-
-        if (
-            not temporal_columns
-            or not numeric_columns
-        ):
+        if not temporal_columns or not numeric_columns:
             continue
 
+        # Evaluate every temporal dimension independently.
         temporal_quality: list[
-            tuple[
-                float,
-                int,
-                Any,
-                pd.Series,
-            ]
+            tuple[float, int, Any, pd.Series]
         ] = []
 
         for temporal_column in temporal_columns:
             converted = parse_temporal_values(
-                dataframe[
-                    temporal_column
-                ]
+                dataframe[temporal_column]
             )
 
-            coverage = float(
-                converted.notna().mean()
-            )
-
+            coverage = float(converted.notna().mean())
             distinct_periods = int(
-                converted.nunique(
-                    dropna=True
-                )
+                converted.nunique(dropna=True)
             )
+
+            if distinct_periods < 2:
+                continue
 
             temporal_quality.append(
                 (
@@ -2437,217 +2540,240 @@ def discover_demand_series_candidates(
             )
         )
 
-        _, _, time_column, time_values = (
-            temporal_quality[0]
-        )
+        for (
+            _coverage,
+            _distinct_periods,
+            time_column,
+            time_values,
+        ) in temporal_quality:
 
-        for value_column in numeric_columns:
-            # Demand candidates must be grounded in source data unless a
-            # future feature explicitly declares itself eligible. This keeps
-            # technical calendar/completeness features out of demand sensing.
-            metadata = (
-                feature_provenance.get(
-                    str(table_name),
-                    {},
-                ).get(
-                    str(value_column),
-                    {},
-                )
-                if feature_provenance
-                else {}
-            )
-
-            if metadata:
-                if not bool(
-                    metadata.get(
-                        "demand_candidate_eligible",
-                        False,
+            for value_column in numeric_columns:
+                # Require source eligibility when provenance is available.
+                metadata = (
+                    feature_provenance.get(
+                        str(table_name),
+                        {},
+                    ).get(
+                        str(value_column),
+                        {},
                     )
+                    if feature_provenance
+                    else {}
+                )
+
+                if metadata:
+                    if not bool(
+                        metadata.get(
+                            "demand_candidate_eligible",
+                            False,
+                        )
+                    ):
+                        continue
+                elif str(value_column).startswith("__"):
+                    # Conservative fallback for older artifacts.
+                    continue
+
+                values = numeric_clean(
+                    dataframe[value_column]
+                )
+
+                valid = pd.DataFrame(
+                    {
+                        "__time": time_values,
+                        "__value": values,
+                    }
+                ).dropna(
+                    subset=["__time", "__value"]
+                )
+
+                observation_count = len(valid)
+
+                if observation_count < DEMAND_MIN_OBSERVATIONS:
+                    continue
+
+                distinct_time_periods = int(
+                    valid["__time"].nunique()
+                )
+
+                if distinct_time_periods < 2:
+                    continue
+
+                unique_value_count = int(
+                    valid["__value"].nunique()
+                )
+
+                if unique_value_count <= 1:
+                    continue
+
+                standard_deviation = safe_float(
+                    valid["__value"].std(ddof=1)
+                )
+
+                if (
+                    standard_deviation is None
+                    or standard_deviation <= 0
                 ):
                     continue
-            elif str(value_column).startswith("__"):
-                # Backward-compatible safeguard for artifacts generated
-                # before the provenance sidecar existed.
-                continue
 
-            values = numeric_clean(
-                dataframe[
-                    value_column
-                ]
-            )
-
-            valid = pd.DataFrame(
-                {
-                    "__time": time_values,
-                    "__value": values,
-                }
-            ).dropna(
-                subset=[
-                    "__time",
-                    "__value",
-                ]
-            )
-
-            observation_count = len(
-                valid
-            )
-
-            if (
-                observation_count
-                < DEMAND_MIN_OBSERVATIONS
-            ):
-                continue
-
-            distinct_time_periods = int(
-                valid[
-                    "__time"
-                ].nunique()
-            )
-
-            if distinct_time_periods < 2:
-                continue
-
-            unique_value_count = int(
-                valid[
-                    "__value"
-                ].nunique()
-            )
-
-            if unique_value_count <= 1:
-                continue
-
-            standard_deviation = safe_float(
-                valid[
-                    "__value"
-                ].std(
-                    ddof=1
+                temporal_coverage = (
+                    observation_count
+                    / max(len(dataframe), 1)
                 )
-            )
 
-            if (
-                standard_deviation is None
-                or standard_deviation <= 0
-            ):
-                continue
-
-            temporal_coverage = (
-                observation_count
-                / max(
-                    len(dataframe),
-                    1,
+                variation_score = min(
+                    1.0,
+                    unique_value_count
+                    / max(observation_count, 1),
                 )
-            )
 
-            variation_score = min(
-                1.0,
-                unique_value_count
-                / max(
-                    observation_count,
-                    1,
-                ),
-            )
+                time_depth_score = min(
+                    1.0,
+                    distinct_time_periods / 100.0,
+                )
 
-            time_depth_score = min(
-                1.0,
-                distinct_time_periods
-                / 100.0,
-            )
+                observation_score = min(
+                    1.0,
+                    observation_count / 500.0,
+                )
 
-            observation_score = min(
-                1.0,
-                observation_count
-                / 500.0,
-            )
+                candidate_score = (
+                    0.35 * temporal_coverage
+                    + 0.25 * time_depth_score
+                    + 0.20 * variation_score
+                    + 0.20 * observation_score
+                )
 
-            candidate_score = (
-                0.35 * temporal_coverage
-                + 0.25 * time_depth_score
-                + 0.20 * variation_score
-                + 0.20 * observation_score
-            )
+                rows.append(
+                    {
+                        "table": table_name,
+                        "time_column": time_column,
+                        "measure_column": value_column,
+                        "observation_count": int(observation_count),
+                        "distinct_time_periods": int(
+                            distinct_time_periods
+                        ),
+                        "temporal_coverage": float(
+                            temporal_coverage
+                        ),
+                        "unique_value_count": int(
+                            unique_value_count
+                        ),
+                        "value_std": standard_deviation,
+                        "candidate_score": float(
+                            max(0.0, min(1.0, candidate_score))
+                        ),
+                        "evidence_type": (
+                            "structural_temporal_numeric_series"
+                        ),
+                    }
+                )
 
-            rows.append(
-                {
-                    "table": table_name,
-                    "time_column": time_column,
-                    "measure_column": value_column,
-                    "observation_count": int(
-                        observation_count
-                    ),
-                    "distinct_time_periods": int(
-                        distinct_time_periods
-                    ),
-                    "temporal_coverage": float(
-                        temporal_coverage
-                    ),
-                    "unique_value_count": int(
-                        unique_value_count
-                    ),
-                    "value_std": standard_deviation,
-                    "candidate_score": float(
-                        max(
-                            0.0,
-                            min(
-                                1.0,
-                                candidate_score,
-                            ),
-                        )
-                    ),
-                    "evidence_type": (
-                        "structural_temporal_numeric_series"
-                    ),
-                }
-            )
+    result_columns = [
+        "table",
+        "time_column",
+        "measure_column",
+        "observation_count",
+        "distinct_time_periods",
+        "temporal_coverage",
+        "unique_value_count",
+        "value_std",
+        "candidate_score",
+        "evidence_type",
+    ]
 
     if not rows:
-        return pd.DataFrame(
-            columns=[
-                "table",
-                "time_column",
-                "measure_column",
-                "observation_count",
-                "distinct_time_periods",
-                "temporal_coverage",
-                "unique_value_count",
-                "value_std",
-                "candidate_score",
-                "evidence_type",
-            ]
-        )
+        return pd.DataFrame(columns=result_columns)
 
-    result = pd.DataFrame(
-        rows
-    )
+    result = pd.DataFrame(rows)
 
-    result = (
-        result
-        .sort_values(
-            [
-                "table",
-                "candidate_score",
-                "observation_count",
-            ],
-            ascending=[
-                True,
-                False,
-                False,
-            ],
-            kind="stable",
-        )
-        .groupby(
+    # Stable tie-break keys also support non-string column labels.
+    result["__time_key"] = result["time_column"].map(repr)
+    result["__measure_key"] = result["measure_column"].map(repr)
+
+    result = result.sort_values(
+        [
             "table",
-            sort=False,
-            as_index=False,
+            "candidate_score",
+            "observation_count",
+            "__time_key",
+            "__measure_key",
+        ],
+        ascending=[
+            True,
+            False,
+            False,
+            True,
+            True,
+        ],
+        kind="stable",
+    ).reset_index(drop=True)
+
+    # Preserve representation from every temporal dimension before filling
+    # the remaining per-table candidate budget with the next-best candidates.
+    selected_groups: list[pd.DataFrame] = []
+
+    for _, table_group in result.groupby(
+        "table",
+        sort=False,
+        dropna=False,
+    ):
+        dimension_representatives = (
+            table_group.drop_duplicates(
+                subset=["__time_key"],
+                keep="first",
+            )
         )
-        .head(
+
+        selected = dimension_representatives.head(
             DEMAND_MAX_CANDIDATES_PER_TABLE
         )
-        .reset_index(
-            drop=True
+
+        remaining_slots = (
+            DEMAND_MAX_CANDIDATES_PER_TABLE - len(selected)
         )
+
+        if remaining_slots > 0:
+            remaining = table_group.loc[
+                ~table_group.index.isin(selected.index)
+            ]
+
+            selected = pd.concat(
+                [
+                    selected,
+                    remaining.head(remaining_slots),
+                ],
+                axis=0,
+            )
+
+        selected_groups.append(selected)
+
+    result = pd.concat(
+        selected_groups,
+        ignore_index=True,
     )
 
-    return result
+    result = result.sort_values(
+        [
+            "table",
+            "candidate_score",
+            "observation_count",
+            "__time_key",
+            "__measure_key",
+        ],
+        ascending=[
+            True,
+            False,
+            False,
+            True,
+            True,
+        ],
+        kind="stable",
+    )
+
+    return (
+        result[result_columns]
+        .reset_index(drop=True)
+    )
 
 
 def _aggregate_temporal_series(
@@ -3130,11 +3256,125 @@ def _evaluate_signal_relationship(
         ),
     }
 
+def build_temporal_series_equivalence(
+    series_cache: dict[tuple[str, Any, Any], pd.DataFrame],
+    *,
+    rtol: float = 1e-9,
+    atol: float = 1e-9,
+) -> tuple[
+    dict[tuple[str, Any, Any], tuple[str, Any, Any]],
+    pd.DataFrame,
+]:
+    """
+    Group structurally equivalent aggregated temporal series.
+
+    Structural equivalence requires:
+    - Matching temporal-column names.
+    - Identical aggregated timestamps.
+    - Numerically equivalent aggregated values.
+
+    This does not establish semantic or business equivalence.
+
+    The canonical key is a deterministic computational representative,
+    not a claim about which source contains the original records.
+    """
+    keys = sorted(series_cache, key=repr)
+
+    representatives: list[
+        tuple[str, Any, Any]
+    ] = []
+
+    canonical_by_key: dict[
+        tuple[str, Any, Any],
+        tuple[str, Any, Any],
+    ] = {}
+
+    equivalence_rows: list[dict[str, Any]] = []
+
+    for key in keys:
+        current = series_cache[key]
+        canonical_key = None
+
+        for representative_key in representatives:
+            # Different temporal dimensions must remain separate.
+            if key[1] != representative_key[1]:
+                continue
+
+            reference = series_cache[representative_key]
+
+            if not current["__time"].equals(
+                reference["__time"]
+            ):
+                continue
+
+            current_values = current["__value"].to_numpy(
+                dtype=float
+            )
+            reference_values = reference["__value"].to_numpy(
+                dtype=float
+            )
+
+            if (
+                current_values.shape == reference_values.shape
+                and np.allclose(
+                    current_values,
+                    reference_values,
+                    rtol=rtol,
+                    atol=atol,
+                    equal_nan=False,
+                )
+            ):
+                canonical_key = representative_key
+                break
+
+        if canonical_key is None:
+            canonical_key = key
+            representatives.append(key)
+
+        canonical_by_key[key] = canonical_key
+
+    groups: dict[
+        tuple[str, Any, Any],
+        list[tuple[str, Any, Any]],
+    ] = {}
+
+    for key, canonical_key in canonical_by_key.items():
+        groups.setdefault(canonical_key, []).append(key)
+
+    for canonical_key, aliases in groups.items():
+        if len(aliases) < 2:
+            continue
+
+        equivalence_rows.append(
+            {
+                "canonical_table": canonical_key[0],
+                "canonical_time_column": canonical_key[1],
+                "canonical_measure_column": canonical_key[2],
+                "alias_count": len(aliases),
+                "aliases": [
+                    {
+                        "table": str(alias[0]),
+                        "time_column": str(alias[1]),
+                        "measure_column": str(alias[2]),
+                    }
+                    for alias in aliases
+                ],
+                "equivalence_method": "structural_aggregate_equivalence",
+                "rtol": rtol,
+                "atol": atol,
+            }
+        )
+
+    return (
+        canonical_by_key,
+        pd.DataFrame(equivalence_rows),
+    )
 
 def analyse_demand_signal_links(
     tables: dict[str, pd.DataFrame],
     feature_provenance: dict[str, dict[str, dict[str, Any]]] | None = None,
 ) -> tuple[
+    pd.DataFrame,
     pd.DataFrame,
     pd.DataFrame,
 ]:
@@ -3168,12 +3408,22 @@ def analyse_demand_signal_links(
         "relationship_strength",
     ]
 
+    equivalence_columns = [
+        "canonical_table",
+        "canonical_time_column",
+        "canonical_measure_column",
+        "alias_count",
+        "aliases",
+        "equivalence_method",
+        "rtol",
+        "atol",
+    ]
+
     if candidates.empty:
         return (
             candidates,
-            pd.DataFrame(
-                columns=relationship_columns
-            ),
+            pd.DataFrame(columns=relationship_columns),
+            pd.DataFrame(columns=equivalence_columns),
         )
 
     series_cache: dict[
@@ -3193,6 +3443,36 @@ def analyse_demand_signal_links(
         numeric_columns = select_numeric_columns(
             dataframe
         )
+        
+        if feature_provenance:
+            table_provenance = feature_provenance.get(
+                str(table_name),
+                {},
+            )
+        
+            numeric_columns = [
+                column
+                for column in numeric_columns
+                if (
+                    bool(
+                        table_provenance.get(
+                            str(column),
+                            {},
+                        ).get(
+                            "demand_candidate_eligible",
+                            False,
+                        )
+                    )
+                )
+            ]
+        else:
+            # Backward compatibility for analytical artifacts
+            # without a provenance sidecar.
+            numeric_columns = [
+                column
+                for column in numeric_columns
+                if not str(column).startswith("__")
+            ]
 
         for time_column in temporal_columns:
             for value_column in numeric_columns:
@@ -3255,39 +3535,50 @@ def analyse_demand_signal_links(
     if not series_cache:
         return (
             candidates,
-            pd.DataFrame(
-                columns=relationship_columns
-            ),
+            pd.DataFrame(columns=relationship_columns),
+            pd.DataFrame(columns=equivalence_columns),
         )
 
-    candidate_keys = [
-        (
-            row["table"],
-            row["time_column"],
-            row["measure_column"],
+    canonical_by_key, series_equivalence = (
+        build_temporal_series_equivalence(
+            series_cache
         )
-        for _, row in candidates.iterrows()
-        if (
-            row["table"],
-            row["time_column"],
-            row["measure_column"],
-        ) in series_cache
-    ]
+    )
+    
+    representative_keys = set(
+        canonical_by_key.values()
+    )
+
+    candidate_keys = list(
+        dict.fromkeys(
+            canonical_by_key[
+                (
+                    row["table"],
+                    row["time_column"],
+                    row["measure_column"],
+                )
+            ]
+            for _, row in candidates.iterrows()
+            if (
+                row["table"],
+                row["time_column"],
+                row["measure_column"],
+            ) in canonical_by_key
+        )
+    )
 
     signal_keys = [
         record["key"]
         for record in sorted(
-            series_metadata,
+            (
+                record
+                for record in series_metadata
+                if record["key"] in representative_keys
+            ),
             key=lambda record: (
-                -record[
-                    "observation_count"
-                ],
-                -record[
-                    "unique_count"
-                ],
-                repr(
-                    record["key"]
-                ),
+                -record["observation_count"],
+                -record["unique_count"],
+                repr(record["key"]),
             ),
         )
     ]
@@ -3351,9 +3642,8 @@ def analyse_demand_signal_links(
     if not links:
         return (
             candidates,
-            pd.DataFrame(
-                columns=relationship_columns
-            ),
+            pd.DataFrame(columns=relationship_columns),
+            series_equivalence,
         )
 
     result = pd.DataFrame(
@@ -3381,6 +3671,7 @@ def analyse_demand_signal_links(
     return (
         candidates,
         result,
+        series_equivalence,
     )
 
 
@@ -3658,11 +3949,9 @@ def write_analysis_workbook(
         ANALYSIS_WORKBOOK,
         engine="openpyxl",
     ) as writer:
+
         for name, dataframe in outputs.items():
-            if (
-                dataframe is None
-                or dataframe.empty
-            ):
+            if dataframe is None or dataframe.empty:
                 continue
 
             sheet = make_unique_sheet_name(
@@ -3670,8 +3959,77 @@ def write_analysis_workbook(
                 used_names,
             )
 
-            safe_output_dataframe(
-                dataframe
+            excel_dataframe = dataframe.copy()
+
+            # Normalize temporal-series aliases into a child worksheet.
+            if name == "Demand_Series_Equivalence":
+                alias_rows = []
+
+                for group_index, record in enumerate(
+                    dataframe.to_dict(orient="records"),
+                    start=1,
+                ):
+                    aliases = record.get("aliases")
+
+                    if not isinstance(aliases, list):
+                        aliases = []
+
+                    for alias in aliases:
+                        if not isinstance(alias, dict):
+                            continue
+
+                        alias_rows.append({
+                            "equivalence_group": group_index,
+                            "canonical_table": record.get(
+                                "canonical_table"
+                            ),
+                            "canonical_time_column": record.get(
+                                "canonical_time_column"
+                            ),
+                            "canonical_measure_column": record.get(
+                                "canonical_measure_column"
+                            ),
+                            "alias_table": alias.get("table"),
+                            "alias_time_column": alias.get(
+                                "time_column"
+                            ),
+                            "alias_measure_column": alias.get(
+                                "measure_column"
+                            ),
+                        })
+
+                # Replace the nested list with a readable scalar summary.
+                excel_dataframe["aliases_summary"] = (
+                    excel_dataframe["alias_count"].map(
+                        lambda count: (
+                            f"{int(count)} structurally equivalent "
+                            f"series are included in this group."
+                        )
+                    )
+                )
+
+                excel_dataframe = excel_dataframe.drop(
+                    columns=["aliases"],
+                    errors="ignore",
+                )
+
+                # Write one alias per row in a separate worksheet.
+                if alias_rows:
+                    alias_sheet = make_unique_sheet_name(
+                        "Demand_Series_Aliases",
+                        used_names,
+                    )
+
+                    pd.DataFrame(alias_rows).to_excel(
+                        writer,
+                        sheet_name=alias_sheet,
+                        index=False,
+                    )
+
+                    written += 1
+
+            prepare_excel_dataframe(
+                excel_dataframe
             ).to_excel(
                 writer,
                 sheet_name=sheet,
@@ -3962,6 +4320,7 @@ def run_analysis() -> None:
     (
         demand_candidates,
         demand_signal_links,
+        demand_series_equivalence,
     ) = analyse_demand_signal_links(
         tables,
         feature_provenance,
@@ -3974,6 +4333,8 @@ def run_analysis() -> None:
     outputs[
         "Demand_Signal_Evidence"
     ] = demand_signal_links
+
+    outputs["Demand_Series_Equivalence"] = demand_series_equivalence
 
     print(
         "Demand-side structural candidates: "

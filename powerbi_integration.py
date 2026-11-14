@@ -1,4 +1,4 @@
-"""Power BI PBIP/PBIR/TMDL integration for the Enterprise Demand Intelligence Platform.
+﻿"""Power BI PBIP/PBIR/TMDL integration for the Enterprise Demand Intelligence Platform.
 
 Production report generator.
 
@@ -44,6 +44,8 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Iterable
+
+from matplotlib.style import context
 
 try:
     import openpyxl
@@ -1582,8 +1584,16 @@ def create_kpi_measures(
     )
     recommendations = contract_table(
         registry, "recommendation_results", "Recommendations",
-        ("recommendation_id", "recommendation_type", "finding", "recommendation",
-         "evidence", "priority_level", "priority_score"),
+        (
+            "recommendation_id",
+            "recommendation_type",
+            "finding",
+            "recommendation",
+            "evidence",
+            "priority_level",
+            "priority_score",
+            "target_time_column",
+        ),
     )
 
     bindings: dict[str, Any] = {
@@ -1972,11 +1982,25 @@ def create_page_visuals(
     # 05 Recommendations & Actions
     # ------------------------------------------------------------------
     elif page_name == "Recommendations & Actions":
-        rec = contract_table(registry, "recommendation_results", "Recommendations",
-            ("recommendation_type", "finding", "recommendation", "evidence",
-             "priority_level", "priority_score", "supporting_signal_count",
-             "forecast_available", "entity_attribute", "entity_value",
-             "entity_context"))
+        rec = contract_table(
+            registry,
+            "recommendation_results",
+            "Recommendations",
+            (
+                "recommendation_type",
+                "finding",
+                "recommendation",
+                "evidence",
+                "priority_level",
+                "priority_score",
+                "supporting_signal_count",
+                "forecast_available",
+                "target_time_column",
+                "entity_attribute",
+                "entity_value",
+                "entity_context",
+            ),
+        )
 
         if rec:
             # KPI cards
@@ -2119,6 +2143,7 @@ def create_page_visuals(
                         (
                             "entity_attribute",
                             "entity_value",
+                            "target_time_column",
                             "priority_level",
                             "finding",
                             "recommendation",
@@ -3166,6 +3191,8 @@ def validate_powerbi_project(
 ) -> dict[str, Any]:
     project_name = project_root.name
 
+    expected_prefix = f"Demand_Intelligence_Report_{context.run_id}"
+
     if project_name != f"Demand_Intelligence_Report_{context.run_id}":
         raise RuntimeError(
             f"Power BI project name is not current-run canonical name: "
@@ -3419,11 +3446,11 @@ def _parse_recommendation_mapping(
 
     if isinstance(value, dict):
         parsed = value
+
     elif isinstance(value, str):
         candidate = value.strip()
 
-        # Current recommendation artifacts contain quoted Python-literal
-        # dictionaries. Peel redundant outer quoting before literal parsing.
+        # Remove redundant outer quoting from legacy serialized artifacts.
         for _ in range(2):
             if (
                 len(candidate) >= 2
@@ -3431,15 +3458,22 @@ def _parse_recommendation_mapping(
                 and candidate[0] in {"'", '"'}
             ):
                 candidate = candidate[1:-1].strip()
+            else:
+                break
 
+        # Prefer standard JSON; retain compatibility with Python literals.
         try:
-            parsed = ast.literal_eval(candidate)
-        except (SyntaxError, ValueError) as exc:
-            raise RuntimeError(
-                f"Recommendation presentation normalization failed at "
-                f"row {row_number}, field {field_name}: "
-                f"unable to parse serialized mapping."
-            ) from exc
+            parsed = json.loads(candidate)
+        except (json.JSONDecodeError, TypeError):
+            try:
+                parsed = ast.literal_eval(candidate)
+            except (SyntaxError, ValueError) as exc:
+                raise RuntimeError(
+                    f"Recommendation presentation normalization failed at "
+                    f"row {row_number}, field {field_name}: "
+                    f"unable to parse serialized mapping."
+                ) from exc
+
     else:
         raise RuntimeError(
             f"Recommendation presentation normalization failed at "
@@ -3467,6 +3501,60 @@ def _parse_recommendation_mapping(
 
     return normalized
 
+def _humanize_presentation_label(value: Any) -> str:
+    """Humanize technical labels in presentation-only fields."""
+
+    text = str(value).strip()
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text)
+    text = text.replace("_", " ")
+    return " ".join(part.capitalize() for part in text.split())
+
+
+def _format_presentation_value(value: Any) -> str:
+    """Format nested values for display without changing source fields."""
+
+    if value is None:
+        return "Not provided"
+
+    if isinstance(value, dict):
+        return _format_presentation_mapping(value)
+
+    if isinstance(value, (list, tuple, set)):
+        items = list(value)
+
+        if not items:
+            return "None"
+
+        return ", ".join(
+            _format_presentation_value(item)
+            for item in items
+        )
+
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+
+    if isinstance(value, str):
+        return value.replace("_", " ")
+
+    return str(value)
+
+
+def _format_presentation_mapping(
+    mapping: dict[str, Any],
+) -> str:
+    """Render a mapping as readable key/value context."""
+
+    if not mapping:
+        return "Overall / Aggregate"
+
+    return "; ".join(
+        f"{_humanize_presentation_label(key)}: "
+        f"{_format_presentation_value(value)}"
+        for key, value in sorted(
+            mapping.items(),
+            key=lambda item: str(item[0]),
+        )
+    )
 
 def prepare_powerbi_presentation_data(
     context: Any,
@@ -3591,9 +3679,8 @@ def prepare_powerbi_presentation_data(
                 row_number,
             )
 
-            # Validate scope too. It is part of the immutable worker contract
-            # and its parseability is an important integrity invariant.
-            _parse_recommendation_mapping(
+            # Preserve the parsed scope for a readable presentation field.
+            scope_mapping = _parse_recommendation_mapping(
                 record.get("scope"),
                 "scope",
                 row_number,
@@ -3604,6 +3691,7 @@ def prepare_powerbi_presentation_data(
                     "row_number": row_number,
                     "record": record,
                     "entity_mapping": entity_mapping,
+                    "scope_mapping": scope_mapping,
                 }
             )
 
@@ -3733,6 +3821,8 @@ def prepare_powerbi_presentation_data(
             "entity_value",
             "entity_context",
             "evidence_summary",
+            "scope_summary",
+            "target_time_column_summary",
         ]
 
         for header in presentation_headers:
@@ -3771,11 +3861,14 @@ def prepare_powerbi_presentation_data(
                 entity_value = "Global"
                 global_count += 1
             elif len(specific_items) == 1:
-                entity_attribute, raw_value = specific_items[0]
-                entity_value = (
-                    str(raw_value)
-                    if raw_value is not None
-                    else ""
+                raw_attribute, raw_value = specific_items[0]
+
+                entity_attribute = (
+                    _humanize_presentation_label(raw_attribute)
+                )
+
+                entity_value = _format_presentation_value(
+                    raw_value
                 )
                 normalized_count += 1
             else:
@@ -3784,7 +3877,8 @@ def prepare_powerbi_presentation_data(
                 specific_items.sort(key=lambda pair: pair[0])
                 entity_attribute = "Multi-Entity"
                 entity_value = " | ".join(
-                    f"{key}={value}"
+                    f"{_humanize_presentation_label(key)}="
+                    f"{_format_presentation_value(value)}"
                     for key, value in specific_items
                 )
                 normalized_count += 1
@@ -3797,8 +3891,25 @@ def prepare_powerbi_presentation_data(
             context_items.sort(key=lambda pair: pair[0])
 
             entity_context = " | ".join(
-                f"{key}={value}"
+                f"{_humanize_presentation_label(key)}="
+                f"{_format_presentation_value(value)}"
                 for key, value in context_items
+            )
+
+            scope_summary = _format_presentation_mapping(
+                item["scope_mapping"]
+            )
+
+            target_time_column = item["record"].get(
+                "target_time_column"
+            )
+
+            target_time_column_summary = (
+                _humanize_presentation_label(
+                    target_time_column
+                )
+                if target_time_column not in (None, "")
+                else "Not specified"
             )
 
             row_number = item["row_number"]
@@ -3822,6 +3933,18 @@ def prepare_powerbi_presentation_data(
                 row=row_number,
                 column=start_column + 3,
                 value=item["evidence_summary"],
+            )
+
+            sheet.cell(
+                row=row_number,
+                column=start_column + 4,
+                value=scope_summary,
+            )
+
+            sheet.cell(
+                row=row_number,
+                column=start_column + 5,
+                value=target_time_column_summary,
             )
 
         # Final structural checks before saving.
@@ -4011,19 +4134,33 @@ def generate_powerbi(
             f"{time.perf_counter() - step:.3f}s"
         )
 
-        # Canonical locked workspace/project location.
-        project = (
-            Path(context.powerbi_root)
-            / f"Demand_Intelligence_Report_{context.run_id}"
+        # Canonical project name is mandatory.
+        # Recovery uses a separate parent directory, not a modified name.
+        powerbi_root = Path(context.powerbi_root)
+
+        canonical_name = f"Demand_Intelligence_Report_{context.run_id}"
+
+        recovery_mode = (
+            os.getenv("EDI_POWERBI_RECOVERY_MODE", "")
+            .strip()
+            .lower()
+            in {"1", "true", "yes"}
         )
-        if project.exists():
-            raise FileExistsError(
-                f"Power BI project already exists; refusing to overwrite: {project}"
-            )
+
+        if recovery_mode:
+            project_parent = powerbi_root / "recovery"
+        else:
+            project_parent = powerbi_root
+
+        project = project_parent / canonical_name
+
         project.mkdir(
             parents=True,
             exist_ok=False,
         )
+
+        # Only this execution owns the newly created directory.
+        project_created = True
 
         model = generate_model(
             project,
@@ -4135,37 +4272,19 @@ def generate_powerbi(
         return True, metadata, None
 
     except Exception as exc:
-        elapsed = time.perf_counter() - started
-        emit(
-            f"POWERBI FAILED after {elapsed:.3f}s"
-        )
-
-        # Failed/partial projects must never be treated as valid outputs.
-        # Keep the directory only when explicitly requested for debugging.
         if project is not None and project.exists():
-            preserve = (
-                os.getenv(
-                    "EDI_PRESERVE_FAILED_POWERBI_PROJECT",
-                    "",
-                ).strip().lower()
-                in {"1", "true", "yes"}
+            emit(
+                f"Power BI project preserved after failure: {project}"
             )
-            if not preserve:
-                try:
-                    shutil.rmtree(project)
-                    emit(
-                        "POWERBI partial project removed after validation/generation failure."
-                    )
-                except Exception as cleanup_exc:
-                    emit(
-                        "POWERBI partial-project cleanup failed: "
-                        f"{type(cleanup_exc).__name__}: {cleanup_exc}"
-                    )
-
+    
+        error_message = f"{type(exc).__name__}: {exc}"
+    
+        emit(f"POWERBI integration failed: {error_message}")
+    
         return (
             False,
             {},
-            f"{type(exc).__name__}: {exc}",
+            error_message,
         )
 
 
@@ -4240,5 +4359,286 @@ def maybe_open_powerbi_project(
 
 
 
+def run_powerbi_integration() -> int:
+    """
+    Generate a new, isolated Power BI run using the latest completed
+    pipeline run's artifacts. Do not execute upstream workers or authenticate.
+    """
+    import main as orchestrator
+
+    started = time.perf_counter()
+    context = None
+
+    required_stages = (
+        "cleaning",
+        "preprocessing",
+        "analysis",
+        "forecasting",
+        "recommendation",
+    )
+
+    project_root = Path(__file__).resolve().parent
+    runs_directory = project_root / "data" / "output" / "runs"
+
+    try:
+        if not runs_directory.is_dir():
+            raise FileNotFoundError(
+                f"Pipeline runs directory not found: {runs_directory}"
+            )
+
+        # Find the latest run with valid, completed upstream artifacts.
+        candidates = sorted(
+            (
+                path for path in runs_directory.iterdir()
+                if path.is_dir()
+                and (path / "run_manifest.json").is_file()
+            ),
+            key=lambda path: (
+                path / "run_manifest.json"
+            ).stat().st_mtime_ns,
+            reverse=True,
+        )
+
+        source_run = None
+        source_manifest = None
+        source_run_id = None
+
+        for candidate in candidates:
+            try:
+                manifest = json.loads(
+                    (candidate / "run_manifest.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+            except (OSError, json.JSONDecodeError):
+                continue
+
+            candidate_run_id = manifest.get(
+                "run_id",
+                candidate.name,
+            )
+
+            stages = manifest.get("stages", {})
+            valid_run = True
+
+            for stage_name in required_stages:
+                stage_state = stages.get(stage_name, {})
+
+                if stage_state.get("status") not in {
+                    "PASSED",
+                    "REUSED",
+                }:
+                    valid_run = False
+                    break
+
+                records = stage_state.get("artifacts", [])
+
+                if len(records) != len(
+                    orchestrator.STAGE_ARTIFACTS[stage_name]
+                ):
+                    valid_run = False
+                    break
+
+                if not orchestrator.validate_artifact_records(
+                    records,
+                    owner_run_directory=candidate,
+                    owner_run_id=candidate_run_id,
+                ):
+                    valid_run = False
+                    break
+
+            if valid_run:
+                source_run = candidate
+                source_manifest = manifest
+                source_run_id = candidate_run_id
+                break
+
+        if source_run is None or source_manifest is None:
+            raise RuntimeError(
+                "No completed pipeline run with valid upstream "
+                "artifacts was found."
+            )
+
+        # Main.py's canonical context factory requires the original dataset.
+        dataset_path = Path(
+            source_manifest["dataset_path"]
+        ).expanduser().resolve()
+
+        if not dataset_path.is_file():
+            raise FileNotFoundError(
+                f"Source dataset is unavailable: {dataset_path}"
+            )
+
+        if (
+            source_manifest.get("dataset_sha256")
+            and orchestrator.sha256_file(dataset_path)
+            != source_manifest["dataset_sha256"]
+        ):
+            raise RuntimeError(
+                "The source dataset has changed since the selected "
+                "pipeline run. Generation cancelled."
+            )
+
+        print("=" * 76)
+        print("ENTERPRISE DEMAND INTELLIGENCE - POWER BI ONLY")
+        print("=" * 76)
+        print(f"Source Run ID: {source_run_id}")
+        print("Upstream stages: REUSE EXISTING ARTIFACTS")
+        print("Authentication: SKIPPED")
+        print("=" * 76)
+
+        # Create a completely new Run ID and all corresponding directories.
+        # This uses the existing canonical Main.py architecture.
+        context = orchestrator.make_context(dataset_path)
+
+                # Prefer the complete set of individually generated current workbooks.
+        # Fall back to the selected pipeline run if that set is incomplete.
+        latest_output_directory = project_root / "data" / "output"
+
+        current_workbook_names = {
+            "analytical_dataset.xlsx",
+            "analysis_results.xlsx",
+            "forecast_results.xlsx",
+            "recommendation_results.xlsx",
+        }
+
+        current_workbooks = {
+            name: latest_output_directory / name
+            for name in current_workbook_names
+        }
+
+        use_current_workbooks = all(
+            path.is_file() and path.stat().st_size > 0
+            for path in current_workbooks.values()
+        )
+
+        print(
+            "Power BI workbook source: "
+            + (
+                "CURRENT OUTPUT WORKBOOKS"
+                if use_current_workbooks
+                else "VALIDATED PIPELINE RUN"
+            )
+        )
+
+        for stage_name in required_stages:
+            source_state = source_manifest["stages"][stage_name]
+            source_records = source_state["artifacts"]
+
+            destination_paths = orchestrator.expected_artifacts(
+                context,
+                stage_name,
+            )
+
+            if len(source_records) != len(destination_paths):
+                raise RuntimeError(
+                    f"{stage_name}: artifact contract mismatch."
+                )
+
+            for record, destination in zip(
+                source_records,
+                destination_paths,
+            ):
+                source_path = Path(record["path"])
+
+                if (
+                    use_current_workbooks
+                    and destination.name in current_workbook_names
+                ):
+                    source_path = current_workbooks[destination.name]
+
+                if not source_path.is_file():
+                    raise FileNotFoundError(
+                        f"Source artifact missing: {source_path}"
+                    )
+
+                destination.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
+
+                shutil.copy2(source_path, destination)
+
+            valid, new_records, error = (
+                orchestrator.validate_stage_artifacts(
+                    context,
+                    stage_name,
+                )
+            )
+
+            if not valid:
+                raise RuntimeError(
+                    f"{stage_name} artifact validation failed: {error}"
+                )
+
+            state = context.stages[stage_name]
+            state.status = "REUSED"
+            state.started_at = orchestrator.iso_now()
+            state.finished_at = state.started_at
+            state.duration_seconds = 0.0
+            state.cache_key = source_state.get("cache_key")
+            state.artifacts = new_records
+            state.error = None
+            state.traceback = None
+
+        orchestrator.log(
+            context,
+            f"POWER BI-ONLY RUN {context.run_id} START; "
+            f"source artifacts reused from {source_run_id}",
+        )
+
+        orchestrator.write_manifest(context)
+
+        # Execute only the existing Power BI stage.
+        # No cleaning, preprocessing, analysis, forecasting,
+        # recommendation workers or authentication are called.
+        success = orchestrator.run_powerbi_stage(context)
+
+        if not success:
+            print(
+                f"POWER BI GENERATION FAILED. "
+                f"Check: {context.log_path}"
+            )
+            return 1
+
+        print("=" * 76)
+        print("POWER BI GENERATION COMPLETED")
+        print(f"New Run ID: {context.run_id}")
+        print(f"Run folder: {context.run_directory}")
+        print(
+            f"Power BI data: {context.powerbi_data_directory}"
+        )
+        print(
+            f"Power BI project: "
+            f"{context.powerbi_metadata.get('project')}"
+        )
+        print("=" * 76)
+
+        return 0
+
+    except Exception as exc:
+        import traceback
+
+        print(
+            f"POWER BI-ONLY GENERATION FAILED: "
+            f"{type(exc).__name__}: {exc}"
+        )
+        traceback.print_exc()
+        return 1
+
+    finally:
+        if context is not None:
+            context.pipeline_duration_seconds = (
+                time.perf_counter() - started
+            )
+            orchestrator.write_manifest(context)
+            orchestrator.print_timing_summary(
+                context,
+                context.pipeline_duration_seconds,
+            )
 
 
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_powerbi_integration())
