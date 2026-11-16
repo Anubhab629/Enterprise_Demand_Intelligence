@@ -26,9 +26,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from geopy.geocoders import Nominatim 
+from geopy.extra.rate_limiter import RateLimiter
 import math
 import re
 import json
+import hashlib
 import urllib.request
 import urllib.error
 
@@ -45,10 +48,10 @@ MAX_CHARTS_PER_SHEET = 10
 # ----------------------------- Local AI configuration --------------------------
 
 OLLAMA_ENTITY_MODEL = "qwen3:0.6b"
-OLLAMA_RECOMMENDATION_MODEL = "qwen3:0.6b"
+OLLAMA_RECOMMENDATION_MODEL = "qwen3:1.7b"
 
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
-OLLAMA_TIMEOUT_SECONDS = 90
+OLLAMA_TIMEOUT_SECONDS = 150
 
 
 def read_workbook(uploaded_file: Any) -> dict[str, pd.DataFrame]:
@@ -73,6 +76,8 @@ def read_workbook(uploaded_file: Any) -> dict[str, pd.DataFrame]:
 def _ollama_generate_json(
     prompt: str,
     model: str,
+    generation_options: dict | None = None,
+    timeout_seconds: int | None = None,
 ) -> dict | None:
     """Generate JSON through Ollama and preserve diagnostic errors."""
 
@@ -80,12 +85,13 @@ def _ollama_generate_json(
         "model": model,
         "prompt": prompt,
         "format": "json",
+        "think": False,
         "stream": False,
         "keep_alive": "10m",
-        "options": {
+        "options": generation_options or {
             "temperature": 0,
-            "num_predict": 180,
-            "num_ctx": 2048,
+            "num_predict": 768,
+            "num_ctx": 4096,
         },
     }
 
@@ -99,17 +105,56 @@ def _ollama_generate_json(
     try:
         with urllib.request.urlopen(
             request,
-            timeout=OLLAMA_TIMEOUT_SECONDS,
+            timeout=(
+                timeout_seconds
+                if timeout_seconds is not None
+                else OLLAMA_TIMEOUT_SECONDS
+            ),
         ) as response:
             result = json.loads(response.read().decode("utf-8"))
 
         raw = result.get("response", "")
+        raw = raw if isinstance(raw, str) else ""
 
-        if not raw:
+        # Keep the server metadata even when the model returns no text.
+        metadata = {
+            key: result.get(key)
+            for key in (
+                "model", "done", "done_reason", "prompt_eval_count",
+                "eval_count", "total_duration", "load_duration",
+                "prompt_eval_duration", "eval_duration"
+            )
+        }
+
+        if not raw.strip():
+            st.session_state["independent_ai_raw_result"] = {
+                "status": "Ollama returned an empty response",
+                "metadata": metadata,
+            }
             st.session_state["independent_ai_debug"] = (
-                "Ollama returned an empty response."
+                "Ollama returned an empty response. "
+                f"Server metadata: {metadata}"
             )
             return None
+
+        if str(result.get("done_reason", "")).casefold() == "length":
+            st.session_state["independent_ai_raw_result"] = {
+                "status": "Ollama generation stopped at the token limit",
+                "metadata": metadata,
+                "response": raw[:4000],
+            }
+            st.session_state["independent_ai_debug"] = (
+                "Ollama generation reached num_predict before completing. "
+                "The response is treated as a failure so Python fallback runs. "
+                f"Server metadata: {metadata}"
+            )
+            return None
+
+        st.session_state["independent_ai_raw_result"] = {
+            "status": "Response received",
+            "metadata": metadata,
+            "response": raw[:4000],
+        }
 
         parsed = json.loads(raw)
 
@@ -141,8 +186,14 @@ def _ollama_generate_json(
         )
 
     except TimeoutError:
+        effective_timeout = (
+            timeout_seconds
+            if timeout_seconds is not None
+            else OLLAMA_TIMEOUT_SECONDS
+        )
+
         st.session_state["independent_ai_debug"] = (
-            f"Ollama timed out after {OLLAMA_TIMEOUT_SECONDS} seconds."
+            f"Ollama timed out after {effective_timeout} seconds."
         )
 
     except json.JSONDecodeError as exc:
@@ -163,201 +214,194 @@ def _build_entity_detection_profile(
     frame: pd.DataFrame,
 ) -> tuple[list[dict], set[str]]:
     """
-    Profile every dataset column using observed values and structure.
+    Profile every column from observed structure.
 
-    No columns are excluded based on predefined names or prefixes.
+    Candidate screening is deliberately permissive: it only checks whether
+    values can form repeated groups. It does not infer business meaning.
+    Ollama interprets the full profiles; Python validates the selected field.
+    No fixed column names, industry vocabulary, or dataset-specific rules.
     """
-    profiles = []
-    eligible_columns = set()
+    profiles: list[dict] = []
+    eligible_columns: set[str] = set()
     row_count = len(frame)
 
     for column in frame.columns:
         name = str(column)
         series = clean_entity_values(frame[column])
-
         values = series.dropna().astype(str).str.strip()
         values = values[values.ne("")]
 
-        non_null = len(values)
-        unique = values.nunique()
-
+        non_null = int(len(values))
+        unique = int(values.nunique())
         kind, _ = _infer_kind(series)
-
         counts = values.value_counts()
         repeated_groups = int((counts >= 2).sum())
+        repeated_records = int(counts[counts >= 2].sum())
 
+        # This is only a structural pre-screen, not proof that the field
+        # represents a company. Do not impose arbitrary cardinality caps.
         is_candidate = (
             kind in {"categorical", "numeric"}
-            and non_null >= 3
+            and non_null >= 4
             and unique >= 2
-            and unique <= max(2, min(500, int(non_null * 0.80)))
             and repeated_groups >= 2
         )
 
         if is_candidate:
             eligible_columns.add(name)
 
+        examples = [str(v)[:100] for v in values.drop_duplicates().head(8).tolist()]
         profiles.append({
             "column": name,
             "data_type": str(frame[column].dtype),
             "inferred_kind": kind,
-            "record_count": row_count,
+            "record_count": int(row_count),
             "non_null_count": non_null,
-            "unique_count": int(unique),
-            "uniqueness_ratio": round(
-                unique / max(non_null, 1), 4
-            ),
+            "missing_count": int(row_count - non_null),
+            "unique_count": unique,
+            "uniqueness_ratio": round(unique / max(non_null, 1), 4),
             "repeated_groups": repeated_groups,
-            "eligible_grouping_candidate": is_candidate,
-            "representative_values": (
-                values.drop_duplicates().head(12).tolist()
-            ),
+            "records_in_repeated_groups": repeated_records,
+            "eligible_grouping_candidate": bool(is_candidate),
+            "representative_values": examples,
         })
 
+    # Save this before any network/model call so diagnostics remain truthful
+    # even if Ollama is unavailable or returns an empty response.
+    st.session_state["independent_ai_eligible_columns"] = sorted(eligible_columns)
+    st.session_state["independent_ai_column_profiles"] = profiles
     return profiles, eligible_columns
-
 
 def _ollama_detect_entity_column(
     frame: pd.DataFrame,
 ) -> str | None:
-    """
-    Identify the company/organization column through AI interpretation
-    followed by independent Python validation.
-    """
+    """Ask Ollama to interpret runtime schema profiles, then validate in Python."""
+    st.session_state["independent_ai_debug"] = "Entity detection started."
+    st.session_state["independent_ai_raw_result"] = {
+        "status": "No Ollama response received yet"
+    }
+    st.session_state["independent_ai_eligible_columns"] = []
+    st.session_state["independent_ai_column_profiles"] = []
+
+    if frame.empty or len(frame.columns) == 0:
+        st.session_state["independent_ai_debug"] = "Selected worksheet has no data columns or records."
+        return None
+
     profiles, eligible_columns = _build_entity_detection_profile(frame)
 
-    if not eligible_columns:
-        st.session_state["independent_ai_debug"] = (
-            "Python structural profiling found no eligible "
-            "repeated-value grouping candidates."
-        )
-        return None
+    # Even when the structural pre-screen finds no candidate, still attempt
+    # Ollama using the complete runtime profiles. Python fallback will run
+    # afterward if AI cannot identify a validated field.
+
+    # Send compact profiles for every column, not only candidates. This lets
+    # the model compare possible entity fields against dates, measures, IDs,
+    # locations, products, customers, and other competing dimensions.
+    prompt_profiles = [
+        {
+            "column": p["column"],
+            "data_type": p["data_type"],
+            "inferred_kind": p["inferred_kind"],
+            "record_count": p["record_count"],
+            "non_null_count": p["non_null_count"],
+            "unique_count": p["unique_count"],
+            "uniqueness_ratio": p["uniqueness_ratio"],
+            "repeated_groups": p["repeated_groups"],
+            "eligible_grouping_candidate": p["eligible_grouping_candidate"],
+            "representative_values": p["representative_values"],
+        }
+        for p in profiles
+    ]
 
     prompt = f"""
 /no_think
+You are a cautious enterprise data-schema interpreter.
 
-You are an enterprise dataset schema interpretation system.
+Task: identify whether one column represents the organization/company
+that owns, operates, or is the subject of the records, and can group
+multiple records for that entity.
 
-Identify the column that represents the company or organization
-responsible for the records and can group those records by entity.
+Important distinctions:
+- A repeated value is not automatically a company.
+- Customer, supplier, employee, product, category, region, location,
+  date, status, and transaction identifiers are not the target unless
+  the supplied schema evidence clearly establishes that role.
+- Do not assume any particular industry, vocabulary, or column naming style.
+- Do not invent a column name. Use an exact supplied column name.
+- Select only a column with eligible_grouping_candidate=true.
+- If the evidence is ambiguous or no organization field exists, return null.
+- Confidence must reflect evidence quality, not certainty theater.
 
-Inspect every supplied column profile.
-
-RULES:
-
-1. Do not assume every dataset contains a company column.
-2. Do not invent column names or values.
-3. Do not rely on a predefined company-name vocabulary.
-4. Do not select a column merely because its values repeat.
-5. Distinguish the organization responsible for records from
-   products, categories, locations, customers, suppliers,
-   employees, dates, transaction IDs and technical metadata.
-6. Use column names, data types, representative values and
-   structural evidence together.
-7. Only select a column marked
-   eligible_grouping_candidate=true.
-8. If no suitable company/organization column exists,
-   return null.
-9. Return one best candidate only.
-10. Return valid JSON without additional commentary.
-
-DATASET PROFILES:
-
-{json.dumps(profiles, ensure_ascii=False, default=str)}
-
-Return exactly this structure:
-
+Return JSON only, using this exact structure:
 {{
-  "entity_column": "exact column name or null",
-  "entity_type": "company, organization, or none",
+  "entity_column": "exact supplied column name or null",
+  "entity_type": "company, organization, business, or none",
   "confidence": 0.0,
-  "reason": "brief explanation"
+  "reason": "brief evidence-based explanation"
 }}
+
+RUNTIME COLUMN PROFILES:
+{json.dumps(prompt_profiles, ensure_ascii=False, default=str)}
 """
 
-    result = _ollama_generate_json(
-        prompt,
-        OLLAMA_ENTITY_MODEL,
-    )
-
+    result = _ollama_generate_json(prompt, OLLAMA_ENTITY_MODEL)
     if not result:
         return None
 
-    st.session_state["independent_ai_raw_result"] = result
-
-    st.session_state["independent_ai_eligible_columns"] = sorted(
-        eligible_columns
-    )
-
     column = result.get("entity_column")
-    entity_type = str(
-        result.get("entity_type", "")
-    ).casefold()
-
+    entity_type = str(result.get("entity_type", "")).strip().casefold()
     try:
         confidence = float(result.get("confidence", 0))
     except (TypeError, ValueError):
+        st.session_state["independent_ai_debug"] = "AI returned a non-numeric confidence value."
         return None
 
     if not isinstance(column, str) or not column.strip():
+        st.session_state["independent_ai_debug"] = (
+            "AI did not identify an entity column. "
+            f"Reason: {str(result.get('reason', 'No reason supplied'))[:500]}"
+        )
         return None
 
-    # The model cannot introduce a column that does not exist.
+    # Exact matching prevents the model from creating or altering a field name.
     if column not in eligible_columns:
+        st.session_state["independent_ai_debug"] = (
+            f"AI selected {column!r}, but it is not a structurally eligible "
+            "column in the uploaded worksheet."
+        )
         return None
 
-    if entity_type not in {
-        "company",
-        "organization",
-        "business",
-    }:
+    if entity_type not in {"company", "organization", "business"}:
+        st.session_state["independent_ai_debug"] = (
+            f"AI returned unsupported entity_type: {entity_type!r}."
+        )
         return None
 
-    # The model's self-reported confidence is only one check.
-    # It is not treated as proof of correctness.
     if not 0.70 <= confidence <= 1.0:
+        st.session_state["independent_ai_debug"] = (
+            f"AI confidence {confidence!r} is below the acceptance threshold. "
+            "Choose the correct field manually if you can verify its meaning."
+        )
         return None
 
-    values = (
-        clean_entity_values(frame[column])
-        .dropna()
-        .astype(str)
-        .str.strip()
-    )
-
+    values = clean_entity_values(frame[column]).dropna().astype(str).str.strip()
     values = values[values.ne("")]
     counts = values.value_counts()
+    repeated_groups = int((counts >= 2).sum())
 
-    st.session_state["independent_ai_debug"] = (
-        f"Validation details | "
-        f"Column: {column!r} | "
-        f"Eligible: {column in eligible_columns} | "
-        f"Entity type: {entity_type!r} | "
-        f"Confidence: {confidence} | "
-        f"Populated values: {len(values)} | "
-        f"Unique values: {values.nunique()} | "
-        f"Repeated groups: {int((counts >= 2).sum())}"
-    )
-
-    if len(counts[counts >= 2]) < 2:
+    if len(values) < 4 or values.nunique() < 2 or repeated_groups < 2:
         st.session_state["independent_ai_debug"] = (
-            "Selected column does not contain at least two "
-            "repeated entity groups."
+            "Python rejected the AI selection: it does not contain at least "
+            "two distinct groups with repeated records."
         )
         return None
 
-    if len(values) < 3:
-        st.session_state["independent_ai_debug"] = (
-            "Selected column contains fewer than three populated values."
-        )
-        return None
-    # All entity validation checks passed.
     st.session_state["independent_ai_debug"] = (
-        f"Entity successfully validated: {column!r}"
+        f"AI suggested {column!r}; Python structural validation passed. "
+        f"Confidence={confidence:.2f}; populated={len(values)}; "
+        f"unique={values.nunique()}; repeated_groups={repeated_groups}. "
+        "User confirmation is still required."
     )
-
     return column
-
 
 def _summarize_company_records(
     group: pd.DataFrame,
@@ -467,15 +511,28 @@ def _summarize_company_records(
                 )
 
                 if not other_peers.empty:
-                    column_summary["peer_median"] = float(
-                        other_peers.median()
-                    )
+                    company_median = float(values.median())
+                    peer_median = float(other_peers.median())
+                    difference = company_median - peer_median
 
+                    column_summary["peer_median"] = peer_median
                     column_summary[
                         "difference_from_peer_median"
-                    ] = float(
-                        values.median() - other_peers.median()
-                    )
+                    ] = difference
+
+                    # Explicit, same-statistic comparison for the AI.
+                    # Never compare a company mean with a peer median.
+                    column_summary["peer_comparison_reference"] = {
+                        "statistic": "median",
+                        "company_median": company_median,
+                        "other_companies_median": peer_median,
+                        "difference": difference,
+                        "direction": (
+                            "higher" if difference > 0
+                            else "lower" if difference < 0
+                            else "equal"
+                        ),
+                    }
 
         elif kind == "datetime" and parsed_dates is not None:
             dates = parsed_dates.dropna()
@@ -515,15 +572,78 @@ def _summarize_company_records(
     return summary
 
 
+def _generate_recommendation_with_retry(
+    prompt: str,
+    model: str,
+    company_name: str,
+) -> dict | None:
+    """
+    Retry Ollama recommendation generation when a response is
+    incomplete or invalid. Never generate a Python recommendation here.
+    """
+
+    last_error = "No valid response received."
+
+    for attempt in range(1, 4):
+        result = _ollama_generate_json(prompt, model)
+
+        if result is not None:
+            recommendation = result.get("recommendation")
+            evidence_columns = result.get("evidence_columns")
+            priority = result.get("priority")
+
+            if (
+                isinstance(recommendation, str)
+                and recommendation.strip()
+                and len(recommendation.strip()) <= 2000
+                and isinstance(evidence_columns, list)
+                and len(evidence_columns) > 0
+                and all(isinstance(column, str) for column in evidence_columns)
+                and priority in {"high", "medium", "low"}
+            ):
+                st.session_state["independent_ai_debug"] = (
+                    f"Ollama generated a valid recommendation for "
+                    f"{company_name!r} on attempt {attempt}."
+                )
+                return result
+
+            last_error = (
+                "Ollama returned JSON, but its recommendation structure "
+                "did not satisfy the required validation."
+            )
+
+        else:
+            last_error = st.session_state.get(
+                "independent_ai_debug",
+                "Ollama returned no valid response.",
+            )
+
+        st.session_state["independent_ai_debug"] = (
+            f"Recommendation attempt {attempt}/3 failed for "
+            f"{company_name!r}: {last_error}"
+        )
+
+    st.session_state["independent_ai_debug"] = (
+        f"Ollama could not generate a valid recommendation for "
+        f"{company_name!r} after 3 attempts. Last error: {last_error}"
+    )
+
+    return None
+
+
 def _generate_ai_company_recommendation(
     entity_value: str,
     group: pd.DataFrame,
     full_frame: pd.DataFrame,
     entity_column: str,
+    previous_recommendations: list[dict] | None = None,
 ) -> str | None:
     """
-    Generate exactly one prioritized recommendation for one company.
-    Record the precise reason whenever AI generation or validation fails.
+    Generate one company-specific, evidence-grounded Ollama recommendation.
+
+    Ollama remains the primary recommendation generator.
+    Invalid responses receive one corrective retry.
+    The existing Python fallback is used if both attempts fail.
     """
 
     diagnostics = st.session_state.setdefault(
@@ -544,116 +664,364 @@ def _generate_ai_company_recommendation(
         entity_value,
     )
 
+    previous_context = (previous_recommendations or [])[-2:]
+
+    # Collect numerical values actually present in the analytical evidence.
+    allowed_numbers = set()
+
+    def collect_numbers(value: Any) -> None:
+        if isinstance(value, bool):
+            return
+
+        if isinstance(value, (int, float)):
+            if math.isfinite(float(value)):
+                allowed_numbers.add(round(float(value), 10))
+            return
+
+        if isinstance(value, dict):
+            for nested_value in value.values():
+                collect_numbers(nested_value)
+
+        elif isinstance(value, (list, tuple)):
+            for nested_value in value:
+                collect_numbers(nested_value)
+
+    collect_numbers(evidence)
+
+    def correct_peer_comparison_direction(
+        recommendation: str,
+        evidence_columns: list[str],
+    ) -> tuple[str, bool]:
+        """Correct a generated direction using the computed peer evidence.
+
+        This is a post-generation wording correction, not a rejection.
+        It preserves the AI recommendation and prevents a directional
+        contradiction from sending an otherwise valid response to fallback.
+        """
+        column_evidence = evidence.get("columns", {})
+        matched_directions = []
+
+        for column in evidence_columns:
+            details = column_evidence.get(column, {})
+            reference = details.get("peer_comparison_reference")
+
+            if not isinstance(reference, dict):
+                continue
+
+            # Only correct a comparison when the recommendation identifies
+            # the relevant source column, avoiding changes to unrelated claims.
+            if str(column).casefold() not in recommendation.casefold():
+                continue
+
+            direction = reference.get("direction")
+            if direction in {"higher", "lower", "equal"}:
+                matched_directions.append(direction)
+
+        # A recommendation should have one primary comparison. If multiple
+        # distinct comparison directions are cited, do not guess which wording
+        # belongs to which metric.
+        unique_directions = set(matched_directions)
+        if len(unique_directions) != 1:
+            return recommendation, False
+
+        direction = unique_directions.pop()
+        if direction == "equal":
+            return recommendation, False
+
+        opposite_words = (
+            {"higher": "lower", "above": "below", "greater": "less"}
+            if direction == "lower"
+            else {"lower": "higher", "below": "above", "less": "greater"}
+        )
+
+        corrected = recommendation
+        for incorrect, correct in opposite_words.items():
+            corrected = re.sub(
+                rf"\b{incorrect}\b",
+                correct,
+                corrected,
+                flags=re.IGNORECASE,
+            )
+
+        return corrected, corrected != recommendation
+
+    def validate_response(result: dict) -> tuple[bool, str, str | None]:
+        recommendation = result.get("recommendation")
+        evidence_columns = result.get("evidence_columns")
+        priority = result.get("priority")
+
+        if not isinstance(recommendation, str):
+            return False, "Recommendation must be a string.", None
+
+        recommendation = recommendation.strip()
+
+        if not recommendation:
+            return False, "Recommendation is empty.", None
+
+        if len(recommendation) > 2000:
+            return False, "Recommendation exceeds 2000 characters.", None
+
+        if not isinstance(evidence_columns, list) or not evidence_columns:
+            return False, "Evidence columns are missing or empty.", None
+
+        valid_columns = {
+            str(column)
+            for column in group.columns
+            if str(column) != entity_column
+        }
+
+        invalid_columns = [
+            column
+            for column in evidence_columns
+            if not isinstance(column, str)
+            or column not in valid_columns
+        ]
+
+        if invalid_columns:
+            return (
+                False,
+                f"Invalid evidence columns: {invalid_columns!r}",
+                None,
+            )
+
+        if priority not in {"high", "medium", "low"}:
+            return False, f"Invalid priority: {priority!r}", None
+
+        # Reject numerical claims that cannot be found in the
+        # current company's analytical evidence.
+        number_pattern = re.compile(
+            r"(?<![A-Za-z])[-+]?\d[\d,]*(?:\.\d+)?%?"
+        )
+
+        unsupported_numbers = []
+
+        for match in number_pattern.findall(recommendation):
+            normalized = match.replace(",", "").rstrip("%")
+
+            try:
+                number = round(float(normalized), 10)
+            except ValueError:
+                continue
+
+            is_supported = any(
+                math.isclose(
+                    number,
+                    allowed_number,
+                    rel_tol=1e-6,
+                    abs_tol=1e-6,
+                )
+                for allowed_number in allowed_numbers
+            )
+
+            if not is_supported:
+                unsupported_numbers.append(match)
+
+        if unsupported_numbers:
+            return (
+                False,
+                "Unsupported numerical claims: "
+                + ", ".join(unsupported_numbers),
+                None,
+            )
+
+        return True, "Validation successful.", recommendation
+
     prompt = f"""
 /no_think
 
-You are an enterprise business intelligence analyst.
+You are an enterprise business intelligence recommendation engine.
 
-Analyze the complete analytical profile of ONE company and
-produce exactly ONE prioritized, actionable recommendation.
+Your responsibility is to analyse one company's actual records and
+produce one high-quality, practical and evidence-grounded recommendation.
 
-The profile was calculated by Python using ALL available
-records belonging to this company.
+CURRENT COMPANY:
+{entity_value}
 
-RULES:
-
-1. Use only the supplied analytical evidence.
-2. Do not invent figures, trends, causes, business conditions,
-   products or company details.
-3. Do not assume higher or lower values are automatically better.
-4. Do not confuse missing data with poor business performance.
-5. Do not recommend an action unsupported by the evidence.
-6. Prioritize the most important actionable finding.
-7. If no material issue is supported, recommend sensible
-   monitoring or validation.
-8. Generate exactly ONE recommendation, not alternatives.
-9. Write 2 to 4 professional, actionable sentences.
-10. Make it specific to this company.
-11. Evidence columns must be exact source column names.
-12. Return valid JSON only.
-
-COMPLETE COMPANY ANALYTICAL PROFILE:
-
+COMPANY ANALYTICAL EVIDENCE:
 {json.dumps(evidence, ensure_ascii=False, default=str)}
 
-Return exactly this structure:
+PREVIOUS COMPANY RECOMMENDATIONS:
+{json.dumps(previous_context, ensure_ascii=False, default=str)}
+
+IMPORTANT:
+Previous recommendations are provided only to help avoid repetitive
+wording. They are NOT evidence about the current company.
+
+ANALYSIS REQUIREMENTS:
+
+1. Analyse the current company's own analytical evidence.
+2. Select the single most important actionable finding.
+3. Consider missing values, numerical distributions, outliers,
+   categorical patterns, record counts and peer comparisons where
+   those measurements are available.
+4. Use actual measured values from the supplied evidence.
+5. Explain the practical significance of the selected finding.
+6. Recommend specific actions that can be performed or investigated.
+7. Explain which exact source columns support the recommendation.
+8. Make the explanation specific to this company.
+9. Similar underlying problems across companies may justify similar
+   actions, but explain each company's own evidence separately.
+10. When comparing a company with its peers, compare the SAME statistic.
+    Use the supplied peer_comparison_reference: company_median against
+    other_companies_median. Do not compare a company mean/average with a
+    peer median.
+11. Determine the direction from the two supplied values: if
+    company_median is greater, say higher/above; if smaller, say
+    lower/below; if equal, do not claim an advantage or disadvantage.
+12. Do not contradict the supplied direction, even if another statistic
+    such as the mean points in a different direction.
+
+STRICT EVIDENCE RULES:
+
+1. The supplied analytical evidence is the only factual source.
+2. Never invent statistics, percentages, financial losses, targets,
+   industry benchmarks, dates or external research.
+3. Never claim that two metrics are correlated, interconnected,
+   or causally related unless the supplied evidence establishes it.
+4. Do not present a possible explanation as an established fact.
+5. If a cause is unknown, recommend investigating it rather than
+   claiming to know it.
+6. Do not assume higher or lower values are automatically better.
+7. Do not confuse missing data with poor business performance.
+8. Do not recommend arbitrary mean, median or mode imputation.
+9. Do not invent products, departments, customers or business processes.
+10. Do not recommend actions unrelated to the measured evidence.
+11. Do not invent monitoring frequencies or improvement targets.
+12. If the evidence is insufficient to establish a business cause,
+    explicitly preserve that uncertainty.
+
+RECOMMENDATION QUALITY:
+
+- Generate exactly ONE prioritized recommendation.
+- Write 2 to 4 substantive sentences.
+- Make the recommendation useful to a business decision-maker, not a generic summary.
+- Identify the most important observed issue or opportunity for THIS company.
+- Name the relevant source column(s) and describe the actual observed pattern.
+- Give a concrete next action that a responsible business team can investigate or perform.
+- Explain why that action follows from the supplied evidence.
+- Separate observed facts from possible explanations; do not state an unverified cause.
+- Prefer specific evidence over generic business language.
+- For peer comparisons, use only the same-statistic median comparison
+  explicitly supplied in peer_comparison_reference.
+- State the company median and peer median only when both values are
+  present, and describe their direction accurately.
+- Avoid comparing a mean/average with a median.
+- Avoid simply listing every analytical finding.
+- Do not copy previous recommendations.
+- Do not add unsupported claims merely to make the response detailed.
+
+OUTPUT:
+Return valid JSON only, using exactly this structure:
 
 {{
-  "recommendation": "One detailed actionable recommendation.",
-  "evidence_columns": ["Exact source column names used"],
-  "priority": "high, medium, or low"
+    "recommendation": "One detailed, company-specific recommendation.",
+    "evidence_columns": ["Exact source column names"],
+    "priority": "high, medium, or low"
 }}
 """
 
-    result = _ollama_generate_json(
-        prompt,
-        OLLAMA_RECOMMENDATION_MODEL,
-    )
-
-    if not result:
-        reason = st.session_state.get(
-            "independent_ai_debug",
-            "Ollama did not return a valid JSON response.",
-        )
-        fail(f"AI generation failed: {reason}")
-        return None
-
-    recommendation = result.get("recommendation")
-    evidence_columns = result.get("evidence_columns")
-    priority = result.get("priority")
-
-    if not isinstance(recommendation, str):
-        fail("AI response validation failed: recommendation is not a string.")
-        return None
-
-    recommendation = recommendation.strip()
-
-    if not recommendation:
-        fail("AI response validation failed: recommendation is empty.")
-        return None
-
-    if len(recommendation) > 2000:
-        fail("AI response validation failed: recommendation exceeds 2000 characters.")
-        return None
-
-    if not isinstance(evidence_columns, list) or not evidence_columns:
-        fail("AI response validation failed: evidence_columns is missing or empty.")
-        return None
-
-    valid_columns = {
-        str(column)
-        for column in group.columns
-        if str(column) != entity_column
+    generation_options = {
+        "temperature": 0.1,
+        "top_p": 0.9,
+        "top_k": 40,
+        "repeat_penalty": 1.05,
+        "num_predict": 768,
+        "num_ctx": 4096,
     }
 
-    invalid_columns = [
-        column
-        for column in evidence_columns
-        if not isinstance(column, str) or column not in valid_columns
-    ]
+    last_error = "No valid response received."
 
-    if invalid_columns:
-        fail(
-            "AI response validation failed: invalid evidence columns: "
-            + repr(invalid_columns)
+    # Initial generation + one corrective retry.
+    for attempt in range(2):
+
+        current_prompt = prompt
+
+        if attempt == 1:
+            current_prompt += f"""
+
+    CORRECTIVE RETRY:
+
+    Your previous response failed validation.
+
+    Problem:
+    {last_error}
+
+    Regenerate the recommendation from the original company evidence.
+
+    Correct the identified problem.
+    If the validation error identifies an unsupported numerical claim,
+    remove that number and state the finding qualitatively using the
+    supplied evidence. Do not estimate or calculate a replacement value.
+    For any peer comparison, use the explicit peer_comparison_reference
+    and compare company_median only with other_companies_median. Follow
+    its direction exactly; never compare a mean with a peer median.
+    Keep the recommendation specific, actionable, and company-specific.
+    Do not introduce unsupported facts.
+    Return the exact required JSON structure.
+    """
+
+        result = _ollama_generate_json(
+            current_prompt,
+            OLLAMA_RECOMMENDATION_MODEL,
+            generation_options=generation_options,
+            timeout_seconds=150,
         )
-        return None
 
-    if priority not in {"high", "medium", "low"}:
-        fail(f"AI response validation failed: invalid priority {priority!r}.")
-        return None
+        # Handle Ollama generation or connection failures.
+        if not result:
+            last_error = st.session_state.get(
+                "independent_ai_debug",
+                "Ollama returned no valid JSON response.",
+            )
 
-    diagnostics[entity_value] = (
-        f"AI recommendation accepted. Priority: {priority}. "
-        f"Evidence columns: {evidence_columns}"
+            # A timeout should not trigger another expensive generation attempt.
+            if "timed out" in str(last_error).casefold():
+                break
+
+            # Allow one retry for other generation failures.
+            continue
+
+        # Validate a successfully received response.
+        valid, reason, recommendation = validate_response(result)
+
+        if not valid:
+            last_error = reason
+            continue
+
+        # Enforce the mathematically computed peer direction after generation.
+        # Do not reject or regenerate an otherwise valid AI recommendation.
+        recommendation, direction_corrected = correct_peer_comparison_direction(
+            recommendation,
+            result.get("evidence_columns", []),
+        )
+
+        # Accept the validated recommendation.
+        diagnostics[entity_value] = (
+            "Ollama AI recommendation accepted. "
+            f"Priority: {result.get('priority')}. "
+            f"Evidence columns: {result.get('evidence_columns')}. "
+            f"Company records analysed: {len(group)}. "
+            f"Generation attempt: {attempt + 1}. "
+            "Evidence-column and numerical-claim validation passed. "
+            + (
+                "Peer-comparison direction corrected from computed evidence."
+                if direction_corrected
+                else "Peer-comparison direction required no correction."
+            )
+        )
+
+        st.session_state[
+            "independent_ai_recommendation_debug"
+        ] = diagnostics
+
+        return recommendation
+
+    fail(
+        "Ollama recommendation generation failed after "
+        f"2 attempts. Last validation/generation error: {last_error}"
     )
 
-    st.session_state[
-        "independent_ai_recommendation_debug"
-    ] = diagnostics
-
-    return recommendation
-
+    return None
 
 
 # ----------------------------- Schema discovery -------------------------------
@@ -818,36 +1186,139 @@ def clean_entity_values(series: pd.Series) -> pd.Series:
 
 
 
-def suggested_entity_column(frame: pd.DataFrame) -> Any | None:
-    """
-    Identify a company/organization grouping field dynamically.
+def _entity_header_semantic_score(column_name: str) -> tuple[float, str]:
+    """Return a small, generic schema-label hint for entity-like headers.
 
-    No predefined company column names, metadata conventions,
-    company vocabularies, or dataset-specific assumptions.
+    This uses broad semantic concepts, not any particular workbook's schema.
+    It is only a ranking hint; the user must still confirm the field.
+    """
+    tokens = set(re.findall(r"[a-z0-9]+", str(column_name).casefold()))
+    entity_terms = {
+        "company", "organization", "organisation", "enterprise",
+        "business", "firm", "corporation", "corporate", "legalentity",
+    }
+    identity_terms = {"name", "id", "identifier", "code", "number", "key"}
+
+    matched = sorted(tokens & entity_terms)
+    if matched:
+        if tokens & identity_terms:
+            return 1.0, f"Header contains entity concept(s): {', '.join(matched)}"
+        return 0.85, f"Header contains entity concept(s): {', '.join(matched)}"
+    return 0.0, "No explicit entity concept found in the header"
+
+
+def _rank_python_entity_candidates(
+    frame: pd.DataFrame,
+) -> list[dict[str, Any]]:
+    """Rank possible entity fields from structure plus generic header hints.
+
+    Structural repetition is the main evidence. Generic semantic header
+    hints break otherwise ambiguous ties (e.g. Company_Name vs Region).
+    This is a suggestion, never proof of business meaning.
     """
     if frame.empty or len(frame.columns) == 0:
+        return []
+
+    profiles, eligible_columns = _build_entity_detection_profile(frame)
+    profile_by_name = {item["column"]: item for item in profiles}
+    ranked: list[dict[str, Any]] = []
+
+    for column in sorted(eligible_columns, key=lambda value: (value.casefold(), value)):
+        profile = profile_by_name.get(column)
+        if not profile:
+            continue
+
+        populated = int(profile["non_null_count"])
+        unique = int(profile["unique_count"])
+        repeated_groups = int(profile["repeated_groups"])
+        repeated_records = int(profile["records_in_repeated_groups"])
+        record_count = int(profile["record_count"])
+
+        if populated < 4 or unique < 2 or repeated_groups < 2:
+            continue
+
+        coverage = populated / max(record_count, 1)
+        repeated_coverage = repeated_records / max(populated, 1)
+        group_share = repeated_groups / max(unique, 1)
+        structural_score = (
+            0.40 * coverage
+            + 0.40 * repeated_coverage
+            + 0.20 * group_share
+        )
+        semantic_score, semantic_reason = _entity_header_semantic_score(column)
+        # Structure remains the majority signal; the generic header hint only
+        # resolves ties and helps avoid preferring Region/Product over Company.
+        score = (0.65 * structural_score) + (0.35 * semantic_score)
+
+        ranked.append({
+            "column": column,
+            "score": round(float(score), 4),
+            "structural_score": round(float(structural_score), 4),
+            "semantic_hint_score": round(float(semantic_score), 4),
+            "unique_values": unique,
+            "repeated_groups": repeated_groups,
+            "populated_records": populated,
+            "reason": (
+                f"{unique} distinct values; {repeated_groups} groups contain "
+                f"repeated records; {repeated_records}/{populated} populated "
+                f"records belong to repeated groups. {semantic_reason}."
+            ),
+        })
+
+    ranked.sort(key=lambda item: (-item["score"], item["column"].casefold(), item["column"]))
+    st.session_state["independent_python_entity_candidates"] = ranked
+    return ranked
+
+
+def suggested_entity_column(frame: pd.DataFrame) -> str | None:
+    """Try Ollama first; if it fails, rank candidates with Python.
+
+    The returned field is only a suggestion. The UI still requires the user
+    to explicitly select/confirm the grouping field.
+    """
+    if frame.empty or len(frame.columns) == 0:
+        st.session_state["independent_python_entity_candidates"] = []
         return None
 
-    # Primary detection: local AI + Python validation.
+    # Primary path: always attempt AI first.
     ai_column = _ollama_detect_entity_column(frame)
-
     if ai_column is not None:
-        st.session_state[
-            "independent_ai_entity_detection"
-        ] = (
-            "Identified using Qwen3 AI and "
-            "Python structural validation."
+        st.session_state["independent_entity_suggestion_source"] = "Ollama AI"
+        st.session_state["independent_ai_entity_detection"] = (
+            f"Ollama suggested {ai_column!r}; Python structural validation passed. "
+            "User confirmation is still required."
         )
+        st.session_state["independent_python_entity_candidates"] = []
         return ai_column
 
-    # Do not silently choose an arbitrary categorical column.
-    st.session_state["independent_ai_entity_detection"] = (
-        st.session_state.get(
-            "independent_ai_debug",
-            "Entity detection failed without a diagnostic.",
-        )
+    # Fallback path: run independently after the AI attempt has failed.
+    ai_failure = st.session_state.get(
+        "independent_ai_debug", "Ollama did not return a validated entity field."
     )
+    try:
+        ranked = _rank_python_entity_candidates(frame)
+    except Exception as exc:
+        ranked = []
+        st.session_state["independent_python_entity_error"] = (
+            f"{type(exc).__name__}: {exc}"
+        )
 
+    st.session_state["independent_entity_suggestion_source"] = "Python structural fallback"
+    if ranked:
+        best = ranked[0]
+        st.session_state["independent_ai_entity_detection"] = (
+            f"Ollama attempt failed ({ai_failure}). Python fallback ranked "
+            f"{len(ranked)} structural candidate(s); top suggestion is "
+            f"{best['column']!r}. This is not proof of company identity; "
+            "confirm the field's meaning before proceeding."
+        )
+        return str(best["column"])
+
+    st.session_state["independent_ai_entity_detection"] = (
+        f"Ollama attempt failed ({ai_failure}). Python fallback found no "
+        "structurally suitable repeated grouping field. You may still inspect "
+        "and manually select a valid field."
+    )
     return None
 
 
@@ -1075,20 +1546,23 @@ def recommend_for_entity(
 
 
 
+
 def build_recommendations(
     frame: pd.DataFrame,
     entity_column: str | None,
     fallback_label: str,
 ) -> pd.DataFrame:
     """
-    Generate exactly one recommendation per identified company.
+    Generate one recommendation per identified company.
 
     Primary:
-        Full-record Python analysis + Qwen3 interpretation.
+        Independent company-level analysis using Ollama.
 
     Fallback:
-        Existing Python recommendation engine.
+        Existing Python recommendation engine, only when AI generation
+        is unavailable or its response fails validation.
     """
+
     output_columns = [
         "Company Name",
         "Recommendation",
@@ -1101,6 +1575,10 @@ def build_recommendations(
     st.session_state[
         "independent_python_fallback_recommendations"
     ] = 0
+
+    st.session_state[
+        "independent_ai_recommendation_debug"
+    ] = {}
 
     if frame.empty:
         return pd.DataFrame(columns=output_columns)
@@ -1122,6 +1600,10 @@ def build_recommendations(
 
         rows = []
 
+        # Maintain previous recommendations so Ollama can distinguish
+        # each company's explanation from the recommendations already made.
+        previous_recommendations = []
+
         for label in unique_labels:
             mask = (
                 entity_values.astype("string")
@@ -1134,13 +1616,13 @@ def build_recommendations(
             if group.empty:
                 continue
 
-            # Primary: AI recommendation based on the full
-            # analytical profile of this company's records.
+            # PRIMARY: Ollama analyses this company's own complete records.
             recommendation = _generate_ai_company_recommendation(
                 label,
                 group,
                 frame,
                 entity_column,
+                previous_recommendations,
             )
 
             if recommendation:
@@ -1148,8 +1630,11 @@ def build_recommendations(
                     "independent_ai_recommendations_used"
                 ] += 1
 
+                recommendation_source = "Ollama"
+
             else:
-                # Fallback to the existing Python engine.
+                # FALLBACK: retain the existing Python recommendation engine.
+                # Similarity between recommendations does NOT trigger fallback.
                 recommendation = recommend_for_entity(
                     label,
                     group,
@@ -1161,9 +1646,19 @@ def build_recommendations(
                     "independent_python_fallback_recommendations"
                 ] += 1
 
+                recommendation_source = "Python fallback"
+
             rows.append({
                 "Company Name": label,
                 "Recommendation": recommendation,
+            })
+
+            # Make this recommendation available as context for subsequent
+            # Ollama calls, regardless of whether it came from AI or fallback.
+            previous_recommendations.append({
+                "company": label,
+                "recommendation": recommendation,
+                "source": recommendation_source,
             })
 
         return pd.DataFrame(
@@ -1176,36 +1671,203 @@ def build_recommendations(
 
 
 
+
 # ---------------------------------- Charts -------------------------------------
 
-def _candidate_geo_columns(frame: pd.DataFrame, numeric: list[str]) -> tuple[str, str] | None:
+
+def _candidate_geo_columns(
+    frame: pd.DataFrame,
+    numeric: list[str],
+) -> tuple[str, str] | None:
     """
-    Infer a possible latitude/longitude pair from value ranges only.
-    This is a candidate, not a guarantee; coordinate values are inherently ambiguous.
+    Identify coordinate columns using generic semantic evidence.
+    Numeric ranges alone are never sufficient.
     """
+
+    latitude_candidates = []
+    longitude_candidates = []
+
+    for column in frame.columns:
+        tokens = set(
+            re.findall(r"[a-z0-9]+", str(column).casefold())
+        )
+
+        if tokens & {"latitude", "lat"}:
+            latitude_candidates.append(str(column))
+
+        if tokens & {"longitude", "long", "lon", "lng"}:
+            longitude_candidates.append(str(column))
+
+    for lat_col in latitude_candidates:
+        for lon_col in longitude_candidates:
+
+            if lat_col == lon_col:
+                continue
+
+            lat = pd.to_numeric(frame[lat_col], errors="coerce")
+            lon = pd.to_numeric(frame[lon_col], errors="coerce")
+
+            valid = (
+                lat.between(-90, 90)
+                & lon.between(-180, 180)
+            )
+
+            if int(valid.sum()) >= 3:
+                return lat_col, lon_col
+
+    return None
+
+
+
+@st.cache_data(show_spinner=False)
+def _geocode_location_values(values: tuple[str, ...]) -> dict:
+    """Resolve distinct geographic values into coordinates."""
+
+    geolocator = Nominatim(
+        user_agent="independent_company_intelligence"
+    )
+
+    reverse_lookup = RateLimiter(
+        geolocator.geocode,
+        min_delay_seconds=1.1,
+        swallow_exceptions=True,
+    )
+
+    results = {}
+
+    for value in values:
+        try:
+            result = reverse_lookup(
+                value,
+                exactly_one=True,
+                addressdetails=True,
+            )
+
+            if result:
+                address = result.raw.get("address", {})
+
+                # Require geographic address evidence.
+                location_parts = [
+                    address.get("city"),
+                    address.get("town"),
+                    address.get("village"),
+                    address.get("municipality"),
+                    address.get("county"),
+                    address.get("state"),
+                    address.get("country"),
+                ]
+
+                location_parts = [
+                    str(part) for part in location_parts if part
+                ]
+
+                if location_parts:
+                    results[value] = {
+                        "latitude": float(result.latitude),
+                        "longitude": float(result.longitude),
+                        "name": ", ".join(location_parts[:3]),
+                    }
+
+        except Exception:
+            continue
+
+    return results
+
+
+def _discover_geographic_data(
+    frame: pd.DataFrame,
+    categorical: list[str],
+) -> pd.DataFrame | None:
+    """
+    Discover a geographic field by testing its values.
+    Does not rely on fixed column names or a particular dataset schema.
+    """
+
     candidates = []
-    for column in numeric:
-        values = pd.to_numeric(frame[column], errors="coerce").dropna()
+
+    for column in categorical:
+        values = (
+            frame[column]
+            .dropna()
+            .astype(str)
+            .str.strip()
+        )
+
+        values = values[values.ne("")].drop_duplicates()
+
         if len(values) < 3:
             continue
-        minimum, maximum = float(values.min()), float(values.max())
-        if minimum >= -90 and maximum <= 90:
-            candidates.append((column, "lat"))
-        if minimum >= -180 and maximum <= 180:
-            candidates.append((column, "lon"))
 
-    for lat_column, lat_kind in candidates:
-        if lat_kind != "lat":
-            continue
-        for lon_column, lon_kind in candidates:
-            if lon_kind != "lon" or lon_column == lat_column:
-                continue
-            lat_values = pd.to_numeric(frame[lat_column], errors="coerce")
-            lon_values = pd.to_numeric(frame[lon_column], errors="coerce")
-            valid = lat_values.between(-90, 90) & lon_values.between(-180, 180)
-            if int(valid.sum()) >= 3:
-                return lat_column, lon_column
-    return None
+        # Test a small sample before selecting a candidate.
+        sample = tuple(values.head(3).tolist())
+
+        resolved = _geocode_location_values(sample)
+
+        success_ratio = len(resolved) / len(sample)
+
+        if success_ratio >= 0.67:
+            candidates.append(
+                (success_ratio, len(resolved), column)
+            )
+
+    if not candidates:
+        return None
+
+    candidates.sort(
+        key=lambda item: (item[0], item[1]),
+        reverse=True,
+    )
+
+    selected_column = candidates[0][2]
+
+    location_values = (
+        frame[selected_column]
+        .dropna()
+        .astype(str)
+        .str.strip()
+    )
+
+    unique_values = tuple(
+        location_values[location_values.ne("")].drop_duplicates()
+    )
+
+    resolved_locations = _geocode_location_values(unique_values)
+
+    if not resolved_locations:
+        return None
+
+    geo_data = frame.loc[
+        frame[selected_column].notna()
+    ].copy()
+
+    geo_data["_Resolved_Location"] = (
+        geo_data[selected_column].astype(str).str.strip()
+    )
+
+    geo_data["_Latitude"] = geo_data[
+        "_Resolved_Location"
+    ].map(
+        lambda value: resolved_locations.get(value, {}).get("latitude")
+    )
+
+    geo_data["_Longitude"] = geo_data[
+        "_Resolved_Location"
+    ].map(
+        lambda value: resolved_locations.get(value, {}).get("longitude")
+    )
+
+    geo_data["_Location_Name"] = geo_data[
+        "_Resolved_Location"
+    ].map(
+        lambda value: resolved_locations.get(value, {}).get("name")
+    )
+
+    geo_data = geo_data.dropna(
+        subset=["_Latitude", "_Longitude", "_Location_Name"]
+    )
+
+    return geo_data if len(geo_data) >= 3 else None
+
 
 
 def render_adaptive_charts(frame: pd.DataFrame, sheet_name: str) -> None:
@@ -1302,29 +1964,133 @@ def render_adaptive_charts(frame: pd.DataFrame, sheet_name: str) -> None:
             chart_count += 1
             break
 
-    # 7. Geographic scatter map when a plausible coordinate pair exists.
+    
+    # 7. Geographic distribution
     if chart_count < MAX_CHARTS_PER_SHEET:
+
+        geo_data = None
+
+        # First preference: genuine coordinate columns.
         geo_pair = _candidate_geo_columns(frame, numeric)
+
         if geo_pair:
             lat_col, lon_col = geo_pair
-            geo_data = frame[[lat_col, lon_col]].copy()
-            geo_data[lat_col] = pd.to_numeric(geo_data[lat_col], errors="coerce")
-            geo_data[lon_col] = pd.to_numeric(geo_data[lon_col], errors="coerce")
-            geo_data = geo_data.dropna()
+
+            geo_data = frame.copy()
+
+            geo_data["_Latitude"] = pd.to_numeric(
+                geo_data[lat_col], errors="coerce"
+            )
+
+            geo_data["_Longitude"] = pd.to_numeric(
+                geo_data[lon_col], errors="coerce"
+            )
+
             geo_data = geo_data[
-                geo_data[lat_col].between(-90, 90)
-                & geo_data[lon_col].between(-180, 180)
-            ]
-            if len(geo_data) >= 3:
+                geo_data["_Latitude"].between(-90, 90)
+                & geo_data["_Longitude"].between(-180, 180)
+            ].copy()
+
+            geo_data["_Location_Name"] = (
+                geo_data["_Latitude"].round(4).astype(str)
+                + ", "
+                + geo_data["_Longitude"].round(4).astype(str)
+            )
+
+        # Second preference: discover and geocode descriptive locations.
+        if geo_data is None or len(geo_data) < 3:
+            geo_data = _discover_geographic_data(
+                frame,
+                categorical,
+            )
+
+        if geo_data is not None and len(geo_data) >= 3:
+
+            
+                # Preserve original dataset details in map tooltips.
+                detail_columns = [
+                    col for col in frame.columns
+                    if col in geo_data.columns
+                ]
+
+                # Display one map marker per distinct location.
+                map_data = geo_data.drop_duplicates(
+                    subset=["_Latitude", "_Longitude"]
+                ).copy()
+
                 fig = px.scatter_geo(
                     geo_data,
-                    lat=lat_col,
-                    lon=lon_col,
-                    title=f"Geographic Distribution ({lat_col}, {lon_col})",
-                    template=template,
+                    lat="_Latitude",
+                    lon="_Longitude",
+                    hover_name="_Location_Name",
+                    hover_data={
+                        col: True for col in detail_columns
+                    },
+                    title="Geographic Distribution",
+                    template="plotly_dark",
                 )
-                st.plotly_chart(fig, use_container_width=True)
+
+                fig.update_traces(
+                    mode="markers+text",
+                    textposition="top center",
+                    textfont=dict(
+                        size=9,
+                        color="#FFFFFF",
+                    ),
+                    marker=dict(
+                        size=7,
+                        color="#818CF8",
+                        opacity=0.9,
+                    ),
+                )
+
+                fig.update_geos(
+                    projection_type="natural earth",
+                    showland=True,
+                    landcolor="#263449",
+                    showocean=True,
+                    oceancolor="#111827",
+                    showcountries=True,
+                    countrycolor="#64748B",
+                    showcoastlines=True,
+                    coastlinecolor="#64748B",
+                    bgcolor="rgba(0,0,0,0)",
+                )
+
+                fig.update_layout(
+                    title=dict(
+                        text="Geographic Distribution",
+                        font=dict(color="#FFFFFF", size=18),
+                        x=0.02,
+                    ),
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color="#FFFFFF"),
+                    height=550,
+                    margin=dict(l=10, r=10, t=65, b=10),
+                    showlegend=False,
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True,
+                )
+
+                st.caption("Geographic Location Details")
+
+                display_columns = [
+                    col for col in geo_data.columns
+                    if not str(col).startswith("_")
+                ]
+
+                st.dataframe(
+                    geo_data[display_columns],
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
                 chart_count += 1
+
 
     # 3. Categorical comparison: horizontal bar charts.
     for category in categorical:
@@ -1454,8 +2220,7 @@ def render_independent_intelligence() -> None:
 
     st.subheader("Automatic Entity Analysis")
 
-    entity_column = suggested_entity_column(frame)
-
+    ai_suggested_entity_column = suggested_entity_column(frame)
 
     detection_status = st.session_state.get(
         "independent_ai_entity_detection",
@@ -1493,6 +2258,69 @@ def render_independent_intelligence() -> None:
             )
         )
 
+        st.write("Full runtime column profiles:")
+        st.json(st.session_state.get("independent_ai_column_profiles", []))
+
+        st.write("Python fallback candidates:")
+        st.json(st.session_state.get("independent_python_entity_candidates", []))
+
+        st.write("Suggestion source:")
+        st.write(st.session_state.get("independent_entity_suggestion_source", "Not available"))
+
+    if ai_suggested_entity_column:
+        st.info(
+            f"Suggested entity field ({st.session_state.get('independent_entity_suggestion_source', 'unknown source')}): "
+            f"{ai_suggested_entity_column}. Confirm that this field genuinely "
+            "identifies the organization whose records should be grouped."
+        )
+    else:
+        st.warning(
+            "Ollama was attempted but did not return a validated entity field, "
+            "and Python did not find a suitable candidate. You may still inspect "
+            "the column profiles and manually select a field if its meaning is known."
+        )
+
+    # Bind the confirmation widget to the uploaded workbook contents and sheet.
+    # This prevents a previous workbook's selection from carrying into a new file.
+    workbook_fingerprint = hashlib.sha256(uploaded.getvalue()).hexdigest()[:12]
+    sheet_fingerprint = hashlib.sha256(str(selected_sheet).encode("utf-8")).hexdigest()[:8]
+    confirmation_key = (
+        f"independent_entity_column_confirmation_{workbook_fingerprint}_{sheet_fingerprint}"
+    )
+    column_options = ["-- Select entity field --"] + [str(c) for c in frame.columns]
+    selected_entity_column = st.selectbox(
+        "Confirm the company / organization grouping field",
+        column_options,
+        index=0,
+        key=confirmation_key,
+        help="Choose the field whose repeated values identify the same company or organization. Do not choose a customer, product, date, or transaction field unless that is genuinely the entity you want to analyse.",
+    )
+
+    entity_column = None
+    if selected_entity_column != "-- Select entity field --":
+        selected_values = clean_entity_values(
+            frame[selected_entity_column]
+        ).dropna().astype(str).str.strip()
+        selected_values = selected_values[selected_values.ne("")]
+        selected_counts = selected_values.value_counts()
+        selected_repeated_groups = int((selected_counts >= 2).sum())
+
+        if (
+            len(selected_values) >= 4
+            and selected_values.nunique() >= 2
+            and selected_repeated_groups >= 2
+        ):
+            entity_column = selected_entity_column
+            st.success(
+                f"Confirmed grouping field: {entity_column} "
+                f"({selected_values.nunique()} distinct values; "
+                f"{selected_repeated_groups} repeated groups)."
+            )
+        else:
+            st.error(
+                "This field does not have enough repeated structure for "
+                "reliable entity-level grouping. Select another field."
+            )
 
     if entity_column is not None:
 
@@ -1556,12 +2384,20 @@ def render_independent_intelligence() -> None:
 
         if fallback_count:
             st.warning(
-                f"{fallback_count} recommendation(s) used the "
-                "existing Python fallback because AI generation "
-                "was unavailable or failed validation."
+                f"{fallback_count} recommendation(s) were generated by Python "
+                "after the AI attempt failed or returned invalid output."
+            )
+
+        fallback_errors = st.session_state.get("independent_python_fallback_errors", {})
+        if fallback_errors:
+            st.error(
+                f"Python fallback also failed for {len(fallback_errors)} entity/entities. "
+                "See diagnostics for the exact exceptions."
             )
 
         with st.expander("AI Recommendation Diagnostics"):
+
+            st.caption(f"Running source file: {Path(__file__).resolve()}")
 
             recommendation_debug = st.session_state.get(
                 "independent_ai_recommendation_debug",
@@ -1671,17 +2507,9 @@ def render_independent_intelligence() -> None:
             ["Company Name", "Recommendation"]
         ]
 
-        # Dynamically sized recommendation panel.
-        # Show more rows when more companies are identified.
-        recommendation_panel_height = max(
-            420,
-            min(900, 140 * len(recommendations) + 80),
-        )
-
-        with st.container(
-            height=recommendation_panel_height,
-            border=True,
-        ):
+        # Automatically size the recommendation panel to its content.
+        # No fixed height, so the last recommendation is never clipped.
+        with st.container(border=True):
 
             for _, row in recommendations.iterrows():
 

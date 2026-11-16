@@ -51,6 +51,40 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+@st.cache_resource(show_spinner=False)
+def register_application_launch() -> int:
+    """Increment the persistent counter once per Streamlit server process."""
+    counter_path = (
+        Path(__file__).resolve().parent.parent
+        / "data"
+        / "application_views.json"
+    )
+    counter_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        stored_data = json.loads(counter_path.read_text(encoding="utf-8"))
+        previous_count = int(stored_data.get("views", 0))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError, AttributeError):
+        previous_count = 0
+
+    current_count = max(0, previous_count) + 1
+
+    temporary_path = counter_path.with_name(
+        f"{counter_path.name}.tmp"
+    )
+    temporary_path.write_text(
+        json.dumps({"views": current_count}, indent=2),
+        encoding="utf-8",
+    )
+    temporary_path.replace(counter_path)
+
+    return current_count
+
+
+application_views = register_application_launch()
+
+
 st.markdown(
     """
     <style>
@@ -87,29 +121,41 @@ st.markdown(
 # Authentication
 # ---------------------------------------------------------------------------
 
+
+
 def show_login() -> None:
-    """Show the login form without exposing credential values."""
-    st.markdown("# Enterprise Demand Intelligence")
+    """Display the EDI dashboard login page."""
+
     st.markdown(
-        '<p class="edi-subtitle">Secure access to your demand intelligence workspace.</p>',
+        """
+        <div style="text-align: center; margin-bottom: 35px;">
+            <h1 style="color: #17365D;">
+                Enterprise Demand Intelligence
+            </h1>
+            <p style="color: #64748b; font-size: 17px;">
+                Enter the username and password you set in main.py
+                to access the dashboard.
+            </p>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
-    _, center, _ = st.columns([1, 1.2, 1])
+    _, center, _ = st.columns([1, 1.8, 1])
+
     with center:
         with st.container(border=True):
-            st.subheader("Sign in")
-            st.caption("Use your configured EDI dashboard credentials.")
+            st.subheader("Dashboard Login")
 
             with st.form("edi_login_form", clear_on_submit=False):
-                username = st.text_input("Username", autocomplete="username")
+                username = st.text_input("Username")
                 password = st.text_input(
                     "Password",
                     type="password",
-                    autocomplete="current-password",
                 )
+
                 submitted = st.form_submit_button(
-                    "Sign in",
+                    "Login",
                     type="primary",
                     use_container_width=True,
                 )
@@ -120,8 +166,7 @@ def show_login() -> None:
                     st.rerun()
                 else:
                     st.error(
-                        "Sign-in failed. Check your credentials and ensure "
-                        "EDI_ADMIN_USERNAME and EDI_ADMIN_PASSWORD_HASH are configured."
+                        "Invalid username or password. Please try again."
                     )
 
 
@@ -708,6 +753,11 @@ def render_exploration_charts(
 
 st.sidebar.title("EDI Workspace")
 st.sidebar.caption("Enterprise Demand Intelligence")
+
+st.sidebar.metric(
+    "Total Application Views",
+    f"{application_views:,}",
+)
 
 if st.sidebar.button("Sign out", key="edi_sign_out", use_container_width=True):
     st.session_state["edi_authenticated"] = False

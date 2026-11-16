@@ -12,6 +12,7 @@ powerbi_integration.py module.
 from __future__ import annotations
 
 import hashlib
+import getpass
 import json
 import zipfile
 import os
@@ -863,9 +864,15 @@ def format_duration(seconds: float) -> str:
 
 
 
-def launch_streamlit_dashboard() -> None:
-    """Optionally launch the Streamlit dashboard after a successful full pipeline."""
+
+
+
+
+def launch_streamlit_dashboard(username: str, password_hash: str) -> None:
+    """Start/reuse Ollama and run the Streamlit dashboard."""
     import subprocess
+    from urllib.error import URLError
+    from urllib.request import urlopen
 
     dashboard_path = PROJECT_ROOT / "streamlit_app" / "app.py"
     if not dashboard_path.is_file():
@@ -886,6 +893,128 @@ def launch_streamlit_dashboard() -> None:
             return
         print("Please enter Y (yes) or N (no).")
 
+    ollama_url = "http://127.0.0.1:11434/api/tags"
+    ollama_process = None
+    streamlit_process = None
+    ollama_started_here = False
+
+    def ollama_is_ready() -> bool:
+        try:
+            with urlopen(ollama_url, timeout=2) as response:
+                return response.status == 200
+        except (OSError, URLError, TimeoutError):
+            return False
+
+    
+    def stop_process(process, process_name: str) -> None:
+        """Stop a process and its child processes without waiting indefinitely."""
+        if process is None or process.poll() is not None:
+            return
+    
+        print(f"Stopping {process_name}...")
+    
+        if os.name == "nt":
+            # Windows: terminate the complete process tree.
+            try:
+                subprocess.run(
+                    [
+                        "taskkill",
+                        "/PID",
+                        str(process.pid),
+                        "/T",
+                        "/F",
+                    ],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=10,
+                    check=False,
+                )
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+            
+            else:
+                # Linux/macOS: terminate the process.
+                process.terminate()
+    
+        # Never wait indefinitely.
+        try:
+            process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            try:
+                process.kill()
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                print(
+                    f"Warning: Could not confirm that {process_name} stopped.",
+                    file=sys.stderr,
+                )
+            except OSError as exc:
+                print(
+                    f"Warning: Could not stop {process_name}: {exc}",
+                    file=sys.stderr,
+                )
+        except OSError as exc:
+            print(
+                f"Warning: Error while stopping {process_name}: {exc}",
+                file=sys.stderr,
+            )
+
+
+    # Reuse Ollama if it is already running.
+    if ollama_is_ready():
+        print("Ollama server is already running; reusing the existing server.")
+
+    else:
+        ollama_executable = shutil.which("ollama")
+
+        if not ollama_executable:
+            print(
+                "Ollama executable was not found. Install Ollama and ensure "
+                "the 'ollama' command is available in PATH."
+            )
+            return
+
+        try:
+            print("Starting Ollama server...")
+            ollama_process = subprocess.Popen(
+                [ollama_executable, "serve"],
+                cwd=str(PROJECT_ROOT),
+            )
+            ollama_started_here = True
+
+        except OSError as exc:
+            print(
+                f"Could not start Ollama: {type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            return
+
+        # Wait up to 30 seconds for Ollama's API.
+        ollama_deadline = time.monotonic() + 30
+
+        while time.monotonic() < ollama_deadline:
+            if ollama_is_ready():
+                print("Ollama server is ready.")
+                break
+
+            if ollama_process.poll() is not None:
+                print(
+                    "Ollama server stopped before becoming ready.",
+                    file=sys.stderr,
+                )
+                return
+
+            time.sleep(1)
+
+        else:
+            print(
+                "Ollama did not become ready within 30 seconds. "
+                "Streamlit will not be started.",
+                file=sys.stderr,
+            )
+            stop_process(ollama_process, "Ollama server")
+            return
+
     command = [
         sys.executable,
         "-m",
@@ -896,32 +1025,103 @@ def launch_streamlit_dashboard() -> None:
         "false",
     ]
 
+    # Pass dashboard credentials to the Streamlit process.
+    process_environment = os.environ.copy()
+    process_environment["EDI_ADMIN_USERNAME"] = username
+    process_environment["EDI_ADMIN_PASSWORD_HASH"] = password_hash
+
     try:
-        creation_flags = (
-            subprocess.CREATE_NEW_CONSOLE
-            if os.name == "nt"
-            else 0
-        )
-        process = subprocess.Popen(
+        print("Starting Streamlit dashboard...")
+
+        streamlit_process = subprocess.Popen(
             command,
             cwd=str(PROJECT_ROOT),
-            creationflags=creation_flags,
+            env=process_environment,
         )
-        print(f"Streamlit dashboard launch requested (PID: {process.pid}).")
+
+        print(f"Streamlit dashboard started (PID: {streamlit_process.pid}).")
         print("The dashboard will open in your browser at http://localhost:8501")
+        print(
+            "Press Ctrl+C to stop the dashboard and any Ollama server "
+            "started here."
+        )
+
+        streamlit_process.wait()
+
+    except KeyboardInterrupt:
+        print("\nDashboard shutdown requested by user.")
+
     except OSError as exc:
         print(
             f"Could not launch the Streamlit dashboard: {type(exc).__name__}: {exc}",
             file=sys.stderr,
         )
 
+    finally:
+        stop_process(streamlit_process, "Streamlit dashboard")
+
+        # Never stop an Ollama instance that was already running.
+        if ollama_started_here:
+            stop_process(ollama_process, "Ollama server")
+
+
 def run_application() -> int:
     pipeline_started = time.perf_counter()
     context: RunContext | None = None
     changes: dict[tuple[Any, str], Any] = {}
 
-    if not env.authenticate():
+    
+    # Collect credentials exclusively for Streamlit dashboard login.
+    print("\n" + "=" * 58)
+    print("       STREAMLIT DASHBOARD LOGIN CREDENTIALS")
+    print("=" * 58)
+
+    dashboard_username = input(
+        "Set username for Streamlit dashboard login (7 characters): "
+    ).strip()
+
+    dashboard_password = getpass.getpass(
+        "Set password for Streamlit dashboard login (10 characters): "
+    )
+
+    # Username: exactly 7 English alphanumeric characters,
+    # containing at least one letter and one number.
+    username_valid = (
+        len(dashboard_username) == 7
+        and dashboard_username.isascii()
+        and dashboard_username.isalnum()
+        and any(char.isalpha() for char in dashboard_username)
+        and any(char.isdigit() for char in dashboard_username)
+    )
+
+    # Password: exactly 10 characters,
+    # containing at least one letter, one number and @.
+    password_valid = (
+        len(dashboard_password) == 10
+        and any(char.isalpha() for char in dashboard_password)
+        and any(char.isdigit() for char in dashboard_password)
+        and "@" in dashboard_password
+    )
+
+    if not username_valid:
+        print(
+            "\nInvalid username. It must contain exactly 7 characters, "
+            "including at least one English letter and one number."
+        )
         return 1
+
+    if not password_valid:
+        print(
+            "\nInvalid password. It must contain exactly 10 characters, "
+            "including at least one letter, one number and @."
+        )
+        return 1
+
+    # Use EDI's existing password hashing function.
+    dashboard_password_hash = env.hash_password(dashboard_password)
+    del dashboard_password
+
+
 
     env.ensure_project_directories()
     dataset = resolve_dataset()
@@ -947,7 +1147,10 @@ def run_application() -> int:
             return 1
 
         log(context, "PIPELINE: SUCCESS")
-        launch_streamlit_dashboard()
+        launch_streamlit_dashboard(
+            dashboard_username,
+            dashboard_password_hash,
+        )
         return 0
     finally:
         total_seconds = time.perf_counter() - pipeline_started
