@@ -583,10 +583,11 @@ def discover_input_files() -> list:
 # only when the headers are strongly similar, profiles are compatible,
 # the fields never coexist in the same source schema, and the match is
 # mutual-best with a sufficient margin. Uncertain columns stay separate.
-SEMANTIC_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
-SEMANTIC_MATCH_THRESHOLD = 0.84
-SEMANTIC_MATCH_MARGIN = 0.05
-SEMANTIC_MODEL_REQUIRED = True
+
+# SEMANTIC_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+# SEMANTIC_MATCH_THRESHOLD = 0.84
+# SEMANTIC_MATCH_MARGIN = 0.05
+# SEMANTIC_MODEL_REQUIRED = True
 
 
 def _normalized_header(value: str) -> str:
@@ -969,32 +970,32 @@ def build_semantic_column_map(
     # Only embed headers, never sample values. Values can describe different
     # companies/regions/products and can distort the meaning of a field name.
     try:
-        from sentence_transformers import SentenceTransformer
-        from sentence_transformers.util import cos_sim
-        from huggingface_hub import snapshot_download
+    #    from sentence_transformers import SentenceTransformer
+    #    from sentence_transformers.util import cos_sim
+    #    from huggingface_hub import snapshot_download 
 
         # Prefer the local model cache first. Once downloaded, normal runs do
         # not need an internet connection or Hugging Face Hub checks. If the
         # cache is empty, fall back to the initial online download.
-        try:
-            model_path = snapshot_download(
-                repo_id=SEMANTIC_MODEL_NAME,
-                local_files_only=True,
+    #    try:
+    #        model_path = snapshot_download(
+    #            repo_id=SEMANTIC_MODEL_NAME,
+    #            local_files_only=True,
+    #        )
+    #        print("Using cached semantic model (offline-capable mode).")
+    #    except Exception:
+    #        print("Semantic model is not cached; downloading it from Hugging Face...")
+    #        model_path = snapshot_download(
+    #            repo_id=SEMANTIC_MODEL_NAME,
+    #            local_files_only=False,
             )
-            print("Using cached semantic model (offline-capable mode).")
-        except Exception:
-            print("Semantic model is not cached; downloading it from Hugging Face...")
-            model_path = snapshot_download(
-                repo_id=SEMANTIC_MODEL_NAME,
-                local_files_only=False,
-            )
-
-        model = SentenceTransformer(model_path)
-        header_texts = [f"Database column name: {name.replace('_', ' ').replace('-', ' ')}" for name in source_columns]
-        embeddings = model.encode(
-            header_texts, convert_to_tensor=True,
-            normalize_embeddings=True, show_progress_bar=False,
-        )
+#
+#        model = SentenceTransformer(model_path)
+#        header_texts = [f"Database column name: {name.replace('_', ' ').replace('-', ' ')}" for name in source_columns]
+#        embeddings = model.encode(
+#            header_texts, convert_to_tensor=True,
+#            normalize_embeddings=True, show_progress_bar=False,
+#        )
         similarity_matrix = cos_sim(embeddings, embeddings).cpu().numpy()
     except Exception as exc:
         if SEMANTIC_MODEL_REQUIRED:
